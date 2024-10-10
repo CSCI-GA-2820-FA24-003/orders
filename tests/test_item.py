@@ -15,7 +15,7 @@
 ######################################################################
 
 """
-TestYourResourceModel API Service Test Suite
+Test cases for Item Model
 """
 
 # pylint: disable=duplicate-code
@@ -23,8 +23,8 @@ import os
 import logging
 from unittest import TestCase
 from wsgi import app
-from service.common import status
-from service.models import db, Order
+from service.models import Order, Item, db
+from .factories import OrderFactory, ItemFactory
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -32,31 +32,30 @@ DATABASE_URI = os.getenv(
 
 
 ######################################################################
-#  T E S T   C A S E S
+#  I T E M   M O D E L   T E S T   C A S E S
 ######################################################################
 # pylint: disable=too-many-public-methods
-class TestYourResourceService(TestCase):
-    """REST API Server Tests"""
+class TestItem(TestCase):
+    """Test Cases for Item Model"""
 
     @classmethod
     def setUpClass(cls):
-        """Run once before all tests"""
+        """This runs once before the entire test suite"""
         app.config["TESTING"] = True
         app.config["DEBUG"] = False
-        # Set up the test database
         app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
         app.logger.setLevel(logging.CRITICAL)
         app.app_context().push()
 
     @classmethod
     def tearDownClass(cls):
-        """Run once after all tests"""
+        """This runs once after the entire test suite"""
         db.session.close()
 
     def setUp(self):
-        """Runs before each test"""
-        self.client = app.test_client()
+        """This runs before each test"""
         db.session.query(Order).delete()  # clean up the last tests
+        db.session.query(Item).delete()  # clean up the last tests
         db.session.commit()
 
     def tearDown(self):
@@ -64,12 +63,33 @@ class TestYourResourceService(TestCase):
         db.session.remove()
 
     ######################################################################
-    #  P L A C E   T E S T   C A S E S   H E R E
+    #  T E S T   C A S E S
     ######################################################################
 
-    def test_index(self):
-        """It should call the home page"""
-        resp = self.client.get("/")
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+    def test_create_item(self):
+        """It should create an Item associate with an Order and add it to the database"""
+        orders = Order.all()
+        self.assertEqual(orders, [])
+        order = OrderFactory()
+        item = ItemFactory(order=order)
+        order.amount = order.amount + item.amount()
+        order.create()
+        self.assertIsNotNone(order.id)
+        orders = Order.all()
+        self.assertEqual(len(orders), 1)
+
+        new_order = Order.find(order.id)
+        self.assertEqual(new_order.id, item.order_id)
+
+        new_item = ItemFactory(order=order)
+        order.amount += new_item.amount()
+        order.update()
+
+        new_order = Order.find(order.id)
+        self.assertEqual(new_order.id, new_item.order_id)
+        self.assertEqual(
+            new_order.amount,
+            item.amount() + new_item.amount(),
+        )
 
     # Todo: Add your test cases here...
