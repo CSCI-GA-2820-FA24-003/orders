@@ -19,7 +19,6 @@ Persistent Base class for database CRUD functions
 """
 
 import logging
-from datetime import date
 from .persistent_base import db, PersistentBase, DataValidationError
 
 logger = logging.getLogger("flask.app")
@@ -28,34 +27,36 @@ logger = logging.getLogger("flask.app")
 ######################################################################
 #  O R D E R   M O D E L
 ######################################################################
-class Order(db.Model, PersistentBase):
+class Item(db.Model, PersistentBase):
     """
-    Class that represents an Order
+    Class that represents an Item
     """
 
     # Table Schema
-    id = db.Column(db.Integer, primary_key=True, nullable=False)
-    date = db.Column(db.Date(), nullable=False, default=date.today())
-    status = db.Column(db.Integer, nullable=False)
+    product_id = db.Column(db.Integer, primary_key=True, nullable=False)
+    order_id = db.Column(
+        db.Integer,
+        db.ForeignKey("order.id", ondelete="CASCADE"),
+        primary_key=True,
+        nullable=False,
+    )
     amount = db.Column(db.Numeric, nullable=False)
-    address = db.Column(db.String(64), nullable=False)
-    customer_id = db.Column(db.Integer, nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    order = db.relationship("Order", backref="item", passive_deletes=True)
 
     def __repr__(self):
-        return f"<Order {self.id} id=[{self.id}]>"
+        return f"<Order {self.order_id} Product id=[{self.product_id}]>"
 
     def serialize(self):
         """Converts an Order into a dictionary"""
-        order = {
-            "id": self.id,
-            "date": self.date_joined.isoformat(),
-            "status": self.status,
+        item = {
+            "order_id": self.order_id,
+            "product_id": self.product_id,
             "amount": self.amount,
-            "address": self.address,
-            "customer_id": self.customer_id,
+            "quantity": self.quantity,
         }
 
-        return order
+        return item
 
     def deserialize(self, data):
         """
@@ -65,31 +66,29 @@ class Order(db.Model, PersistentBase):
             data (dict): A dictionary containing the resource data
         """
         try:
-            self.id = data["id"]
-            self.date = date.fromisoformat(data["date"])
-            self.status = data["status"]
+            self.order_id = data["order_id"]
+            self.product_id = data["product_id"]
             self.amount = data["amount"]
-            self.address = data["address"]
-            self.customer_id = data["customer_id"]
+            self.quantity = data["quantity"]
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0]) from error
         except KeyError as error:
             raise DataValidationError(
-                "Invalid Order: missing " + error.args[0]
+                "Invalid Item: missing " + error.args[0]
             ) from error
         except TypeError as error:
             raise DataValidationError(
-                "Invalid Order: body of request contained bad or no data " + str(error)
+                "Invalid Item: body of request contained bad or no data " + str(error)
             ) from error
 
         return self
 
-    # @classmethod
-    # def find_by_name(cls, name):
-    #     """Returns all Accounts with the given name
+    @classmethod
+    def find_by_order_id(cls, order_id):
+        """Returns all Items with the given order id
 
-    #     Args:
-    #         name (string): the name of the Accounts you want to match
-    #     """
-    #     logger.info("Processing name query for %s ...", name)
-    #     return cls.query.filter(cls.name == name)
+        Args:
+            order_id (Integer): the id of the order you want to match
+        """
+        logger.info("Processing order_id query for %s ...", order_id)
+        return cls.query.filter(cls.order_id == order_id)
