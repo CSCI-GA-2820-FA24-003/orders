@@ -72,7 +72,7 @@ class TestItem(TestCase):
         self.assertEqual(orders, [])
         order = OrderFactory()
         item = ItemFactory(order=order)
-        order.amount = order.amount + item.amount
+        order.amount = order.amount + item.amount()
         order.create()
         self.assertIsNotNone(order.id)
         orders = Order.all()
@@ -82,11 +82,14 @@ class TestItem(TestCase):
         self.assertEqual(new_order.id, item.order_id)
 
         new_item = ItemFactory(order=order)
-        order.amount += new_item.amount
+        order.amount += new_item.amount()
         order.update()
 
         new_order = Order.find(order.id)
         self.assertEqual(new_order.id, new_item.order_id)
-        self.assertEqual(new_order.amount, item.amount + new_item.amount)
+        self.assertEqual(
+            new_order.amount,
+            item.amount() + new_item.amount(),
+        )
 
     # Todo: Add your test cases here...

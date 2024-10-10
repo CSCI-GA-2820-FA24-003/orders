@@ -35,6 +35,6 @@ class ItemFactory(factory.Factory):
 
     product_id = factory.Sequence(lambda n: n)
     order_id = factory.SelfAttribute("order.id")
-    amount = FuzzyDecimal(1.0)
-    quantity = FuzzyInteger(0)
+    price = FuzzyDecimal(1.0)
+    quantity = FuzzyInteger(1)
     order = factory.SubFactory(OrderFactory)

@@ -23,7 +23,7 @@ import os
 import logging
 from unittest import TestCase
 from wsgi import app
-from service.models import Order, DataValidationError, db
+from service.models import Order, db
 from .factories import OrderFactory
 
 DATABASE_URI = os.getenv(

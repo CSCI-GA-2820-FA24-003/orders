@@ -40,9 +40,12 @@ class Item(db.Model, PersistentBase):
         primary_key=True,
         nullable=False,
     )
-    amount = db.Column(db.Numeric, nullable=False)
+    price = db.Column(db.Numeric, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     order = db.relationship("Order", backref="item", passive_deletes=True)
+
+    def amount(self):
+        return self.price * self.quantity
 
     def __repr__(self):
         return f"<Order {self.order_id} Product id=[{self.product_id}]>"
@@ -52,7 +55,7 @@ class Item(db.Model, PersistentBase):
         item = {
             "order_id": self.order_id,
             "product_id": self.product_id,
-            "amount": self.amount,
+            "price": self.price,
             "quantity": self.quantity,
         }
 
@@ -68,7 +71,7 @@ class Item(db.Model, PersistentBase):
         try:
             self.order_id = data["order_id"]
             self.product_id = data["product_id"]
-            self.amount = data["amount"]
+            self.price = data["price"]
             self.quantity = data["quantity"]
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0]) from error
