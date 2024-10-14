@@ -80,4 +80,36 @@ class TestOrder(TestCase):
         self.assertEqual(data.address, order.address)
         self.assertEqual(data.customer_id, order.customer_id)
 
+
+    def test_update_a_order(self):
+        """It should Update a Order"""
+        order = OrderFactory()
+        logging.debug(order)
+        order.id = None
+        order.create()
+        logging.debug(order)
+        self.assertIsNotNone(order.id)
+        # Change it an save it
+        order.date = "2024-10-12"
+        order.status = 1
+        order.amount = 100
+        order.address = "abc"
+        order.customer_id = 123
+        original_id = order.id
+        order.update()
+        self.assertEqual(order.id, original_id)
+        # Fetch it back and make sure the id hasn't changed
+        # but the data did change
+        orders = Order.all()
+        self.assertEqual(len(orders), 1)
+        self.assertEqual(orders[0].id, original_id)
+        updated_date = orders[0].date.strftime('%Y-%m-%d')
+        self.assertEqual(updated_date, "2024-10-12")
+        self.assertEqual(orders[0].status, 1)
+        self.assertEqual(orders[0].amount, 100)
+        self.assertEqual(orders[0].address, "abc")
+        self.assertEqual(orders[0].customer_id, 123)
+
+
     # Todo: Add your test cases here...
+
