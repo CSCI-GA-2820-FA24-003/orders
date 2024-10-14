@@ -32,8 +32,7 @@ from datetime import datetime
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
 )
-BASE_ORDER_URL = "/orders"
-BASE_ITEM_URL = "/items"
+BASE_URL = "/orders"
 
 
 ######################################################################
@@ -85,7 +84,7 @@ class OrderTestSuite(TestCase):
         """It should Create a new Order"""
         test_order = OrderFactory()
         logging.debug("Test Order: %s", test_order.serialize())
-        response = self.client.post(BASE_ORDER_URL, json=test_order.serialize())
+        response = self.client.post(BASE_URL, json=test_order.serialize())
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Make sure location header is set
@@ -123,7 +122,7 @@ class OrderTestSuite(TestCase):
         """It should Update an existing Order"""
         # create a order to update
         test_order = OrderFactory()
-        response = self.client.post(BASE_ORDER_URL, json=test_order.serialize())
+        response = self.client.post(BASE_URL, json=test_order.serialize())
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # update the order
@@ -135,7 +134,7 @@ class OrderTestSuite(TestCase):
         new_order["amount"] = 0
         new_order["address"] = "unknown"
         new_order["customer_id"] = 0
-        response = self.client.put(f"{BASE_ORDER_URL}/{new_order['id']}", json=new_order)
+        response = self.client.put(f"{BASE_URL}/{new_order['id']}", json=new_order)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         updated_order = response.get_json()
@@ -151,23 +150,36 @@ class OrderTestSuite(TestCase):
     # ----------------------------------------------------------
     def test_create_item(self):
         """It should Create a new item"""
-        test_item = ItemFactory()
-        logging.debug("Test Item: %s", test_item.serialize())
-        response = self.client.post(BASE_ITEM_URL, json=test_item.serialize())
+
+        # Create an order to create an item
+        test_order = OrderFactory()
+        response = self.client.post(BASE_URL, json=test_order.serialize())
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        logging.debug("Response Data: %s", response.get_json())
+        new_order = response.get_json()
+
+        test_item = test_item = ItemFactory(order_id=new_order['id'])
+
+        logging.debug("Test Item: %s", test_item.serialize())
+
+        ITEM_URL = "items"
+        ITEM_POST_URL = f"{BASE_URL}/{new_order['id']}/{ITEM_URL}"
+        test_response = self.client.post(ITEM_POST_URL, json=test_item.serialize())
+        self.assertEqual(test_response.status_code, status.HTTP_201_CREATED)
+        logging.debug("Response Data: %s", test_response.get_json())
 
 
         # Make sure location header is set
-        location = response.headers.get("Location", None)
+        location = test_response.headers.get("Location", None)
         self.assertIsNotNone(location)
 
         # Check the data is correct
-        new_item = response.get_json()
+        new_item = test_response.get_json()
 
         self.assertEqual(new_item["order_id"], test_item.order_id)
         self.assertEqual(new_item["product_id"], test_item.product_id)
-        self.assertEqual(new_item["price"], test_item.price)
+
+        # price need to be in the same type
+        self.assertEqual(str(test_item.price), new_item["price"])
         self.assertEqual(new_item["quantity"], test_item.quantity)
 
         #TODO: uncomment this code when get_item is implemented

@@ -110,25 +110,23 @@ def update_orders(order_id):
 ######################################################################
 # CREATE A NEW ITEM
 ######################################################################
-@app.route("/items", methods=["POST"])
-def create_items():
+@app.route("/orders/<int:order_id>/items", methods=["POST"])
+def create_items(order_id):
     """
     Create an Item
-    This endpoint will create an Item based the data in the body that is posted
+    This endpoint will create an Item based on the data in the body that is posted
     """
-    app.logger.info("Request to Create an Item...")
+    app.logger.info("Request to Create an Item for Order ID: %d", order_id)
     check_content_type("application/json")
 
     item = Item()
     # Get the data from the request and deserialize it
     data = request.get_json()
     app.logger.info("Processing: %s", data)
-    try:
-        item.deserialize(data)
-    except Exception as e:
-        app.logger.error("Error deserializing item: %s", str(e))
-        return jsonify({"error": "Invalid data format"}), status.HTTP_400_BAD_REQUEST
+    item.deserialize(data)
 
+    # Assign the order_id to the item
+    item.order_id = order_id
 
     # Save the new Item to the database
     try:
@@ -136,15 +134,11 @@ def create_items():
     except Exception as e:
         app.logger.error("Error saving item to the database: %s", str(e))
         return jsonify({"error": "Database error"}), status.HTTP_500_INTERNAL_SERVER_ERROR
-
-    app.logger.info("Item with new id [%s] saved!", item.product_id)
-
-    # Todo : uncomment this code when get_order is implemented
-
+    
+    app.logger.info("Item with new id [%s] saved for Order ID [%s]!", item.product_id, order_id)
 
     # Return the location of the new Item
-    location_url = "unknown"
-    #location_url = url_for("get_orders", order_id=order.id, _external=True)
+    location_url = url_for("create_items", order_id=order_id, _external=True)
     return jsonify(item.serialize()), status.HTTP_201_CREATED, {"Location": location_url}
 
 
