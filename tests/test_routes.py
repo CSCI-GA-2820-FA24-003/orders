@@ -66,6 +66,25 @@ class OrderTestSuite(TestCase):
         """This runs after each test"""
         db.session.remove()
 
+    ############################################################
+    # Utility function to bulk create orders
+    ############################################################
+    def _create_orders(self, count: int = 1) -> list:
+        """Factory method to create orders in bulk"""
+        orders = []
+        for _ in range(count):
+            test_order = OrderFactory()
+            response = self.client.post(BASE_URL, json=test_order.serialize())
+            self.assertEqual(
+                response.status_code,
+                status.HTTP_201_CREATED,
+                "Could not create test order",
+            )
+            new_order = response.get_json()
+            test_order.id = new_order["id"]
+            orders.append(test_order)
+        return orders
+
     ######################################################################
     #  P L A C E   T E S T   C A S E S   H E R E
     ######################################################################
@@ -101,7 +120,7 @@ class OrderTestSuite(TestCase):
         self.assertEqual(new_order["address"], test_order.address)
         self.assertEqual(new_order["customer_id"], test_order.customer_id)
 
-        #TODO: uncomment this code when get_order is implemented
+        # TODO: uncomment this code when get_order is implemented
 
         # Check that the location header was correct
         # response = self.client.get(location)
@@ -142,3 +161,23 @@ class OrderTestSuite(TestCase):
         self.assertEqual(updated_order["amount"], 0)
         self.assertEqual(updated_order["address"], "unknown")
         self.assertEqual(updated_order["customer_id"], 0)
+
+    # ----------------------------------------------------------
+    # TEST DELETE
+    # ----------------------------------------------------------
+    def test_delete_order(self):
+        """It should Delete an Order"""
+        test_order = self._create_orders(1)[0]
+        response = self.client.delete(f"{BASE_URL}/{test_order.id}")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(len(response.data), 0)
+        # make sure they are deleted
+        # Uncomment after implement get
+        # response = self.client.get(f"{BASE_URL}/{test_order.id}")
+        # self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_non_existing_order(self):
+        """It should Delete an Order even if it doesn't exist"""
+        response = self.client.delete(f"{BASE_URL}/0")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(len(response.data), 0)
