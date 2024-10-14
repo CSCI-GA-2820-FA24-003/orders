@@ -25,6 +25,7 @@ from unittest import TestCase
 from wsgi import app
 from service.models import Order, db
 from .factories import OrderFactory
+from .factories import ItemFactory
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -109,6 +110,10 @@ class TestOrder(TestCase):
         self.assertEqual(orders[0].amount, 100)
         self.assertEqual(orders[0].address, "abc")
         self.assertEqual(orders[0].customer_id, 123)
+
+
+
+
 
 
     # Todo: Add your test cases here...
