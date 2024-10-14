@@ -142,3 +142,24 @@ class OrderTestSuite(TestCase):
         self.assertEqual(updated_order["amount"], 0)
         self.assertEqual(updated_order["address"], "unknown")
         self.assertEqual(updated_order["customer_id"], 0)
+        
+        
+    # ----------------------------------------------------------
+    # TEST READ
+    # ----------------------------------------------------------
+    def test_get_order(self):
+        """It should Get a single Order"""
+        # get the id of a order
+        test_order = self._create_orders(1)[0]
+        response = self.client.get(f"{BASE_URL}/{test_order.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(data["name"], test_order.name)
+
+    def test_get_order_not_found(self):
+        """It should not Get an Order thats not found"""
+        response = self.client.get(f"{BASE_URL}/0")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        data = response.get_json()
+        logging.debug("Response data = %s", data)
+        self.assertIn("was not found", data["message"])
