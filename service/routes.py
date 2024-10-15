@@ -248,6 +248,26 @@ def list_orders():
 
 
 ######################################################################
+# DELETE AN ITEM FROM ORDER
+######################################################################
+@app.route("/orders/<int:order_id>/items/<int:product_id>", methods=["DELETE"])
+def delete_items(order_id, product_id):
+    """
+    Delete an Item
+
+    This endpoint will delete an Item based the id specified in the path
+    """
+    app.logger.info("Request to Delete an item with id [%s]", (product_id, order_id))
+
+    # See if the item exists and delete it if it does
+    item = Item.find_by_product_id(order_id, product_id)
+    if item:
+        item.delete()
+
+    return "", status.HTTP_204_NO_CONTENT
+
+
+######################################################################
 # Checks the ContentType of a request
 ######################################################################
 def check_content_type(content_type) -> None:
