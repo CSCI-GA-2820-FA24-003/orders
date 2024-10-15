@@ -24,6 +24,7 @@ and Delete YourResourceModel
 from flask import jsonify, request, url_for, abort
 from flask import current_app as app  # Import Flask application
 from service.models import Order
+from service.models import Item
 from service.common import status  # HTTP Status Codes
 
 
@@ -68,7 +69,6 @@ def create_orders():
     order.create()
     app.logger.info("Order with new id [%s] saved!", order.id)
 
-    # Todo : uncomment this code when get_order is implemented
 
     # Return the location of the new Order
     location_url = "unknown"
@@ -108,6 +108,43 @@ def update_orders(order_id):
 
     app.logger.info("Order with ID: %d updated.", order.id)
     return jsonify(order.serialize()), status.HTTP_200_OK
+
+
+
+######################################################################
+# CREATE A NEW ITEM
+######################################################################
+@app.route("/orders/<int:order_id>/items", methods=["POST"])
+def create_items(order_id):
+    """
+    Create an Item
+    This endpoint will create an Item based on the data in the body that is posted
+    """
+    app.logger.info("Request to Create an Item for Order ID: %d", order_id)
+    check_content_type("application/json")
+
+    item = Item()
+    # Get the data from the request and deserialize it
+    data = request.get_json()
+    app.logger.info("Processing: %s", data)
+    item.deserialize(data)
+
+    # Assign the order_id to the item
+    item.order_id = order_id
+
+    # Save the new Item to the database
+    try:
+        item.create()
+    except Exception as e:
+        app.logger.error("Error saving item to the database: %s", str(e))
+        return jsonify({"error": "Database error"}), status.HTTP_500_INTERNAL_SERVER_ERROR
+    
+    app.logger.info("Item with new id [%s] saved for Order ID [%s]!", item.product_id, order_id)
+
+    # Return the location of the new Item
+    location_url = url_for("create_items", order_id=order_id, _external=True)
+    return jsonify(item.serialize()), status.HTTP_201_CREATED, {"Location": location_url}
+
 
 
 ######################################################################

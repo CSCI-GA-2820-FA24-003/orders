@@ -26,6 +26,7 @@ from wsgi import app
 from service.common import status
 from service.models import db, Order
 from .factories import OrderFactory
+from .factories import ItemFactory
 from datetime import datetime
 
 DATABASE_URI = os.getenv(
@@ -146,7 +147,7 @@ class OrderTestSuite(TestCase):
         # update the order
         new_order = response.get_json()
         logging.debug(new_order)
-
+        
         new_order["date"] = "2024-10-12"
         new_order["status"] = 0
         new_order["amount"] = 0
@@ -161,7 +162,7 @@ class OrderTestSuite(TestCase):
         self.assertEqual(updated_order["amount"], 0)
         self.assertEqual(updated_order["address"], "unknown")
         self.assertEqual(updated_order["customer_id"], 0)
-
+        
     # ----------------------------------------------------------
     # TEST DELETE
     # ----------------------------------------------------------
@@ -181,3 +182,54 @@ class OrderTestSuite(TestCase):
         response = self.client.delete(f"{BASE_URL}/0")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(len(response.data), 0)
+
+
+
+    # ----------------------------------------------------------
+    # TEST CREATE AN ITEM
+    # ----------------------------------------------------------
+    def test_create_item(self):
+        """It should Create a new item"""
+
+        # Create an order to create an item
+        test_order = OrderFactory()
+        response = self.client.post(BASE_URL, json=test_order.serialize())
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        new_order = response.get_json()
+
+        test_item = test_item = ItemFactory(order_id=new_order['id'])
+
+        logging.debug("Test Item: %s", test_item.serialize())
+
+        ITEM_URL = "items"
+        ITEM_POST_URL = f"{BASE_URL}/{new_order['id']}/{ITEM_URL}"
+        test_response = self.client.post(ITEM_POST_URL, json=test_item.serialize())
+        self.assertEqual(test_response.status_code, status.HTTP_201_CREATED)
+        logging.debug("Response Data: %s", test_response.get_json())
+
+
+        # Make sure location header is set
+        location = test_response.headers.get("Location", None)
+        self.assertIsNotNone(location)
+
+        # Check the data is correct
+        new_item = test_response.get_json()
+
+        self.assertEqual(new_item["order_id"], test_item.order_id)
+        self.assertEqual(new_item["product_id"], test_item.product_id)
+
+        # price need to be in the same type
+        self.assertEqual(str(test_item.price), new_item["price"])
+        self.assertEqual(new_item["quantity"], test_item.quantity)
+
+        #TODO: uncomment this code when get_item is implemented
+
+        # Check that the location header was correct
+        # response = self.client.get(location)
+        # self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # new_item = response.get_json()
+        # self.assertEqual(new_item["order_id"], test_item.order_id)
+        # self.assertEqual(new_item["product_id"], test_item.product_id)
+        # self.assertEqual(new_item["price"], test_item.price)
+        # self.assertEqual(new_item["quantity"], test_item.quantity)
+
