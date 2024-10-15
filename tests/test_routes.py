@@ -147,7 +147,7 @@ class OrderTestSuite(TestCase):
         # update the order
         new_order = response.get_json()
         logging.debug(new_order)
-        
+
         new_order["date"] = "2024-10-12"
         new_order["status"] = 0
         new_order["amount"] = 0
@@ -162,7 +162,7 @@ class OrderTestSuite(TestCase):
         self.assertEqual(updated_order["amount"], 0)
         self.assertEqual(updated_order["address"], "unknown")
         self.assertEqual(updated_order["customer_id"], 0)
-        
+
     # ----------------------------------------------------------
     # TEST DELETE
     # ----------------------------------------------------------
@@ -183,8 +183,6 @@ class OrderTestSuite(TestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(len(response.data), 0)
 
-
-
     # ----------------------------------------------------------
     # TEST CREATE AN ITEM
     # ----------------------------------------------------------
@@ -197,7 +195,7 @@ class OrderTestSuite(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         new_order = response.get_json()
 
-        test_item = test_item = ItemFactory(order_id=new_order['id'])
+        test_item = test_item = ItemFactory(order_id=new_order["id"])
 
         logging.debug("Test Item: %s", test_item.serialize())
 
@@ -206,7 +204,6 @@ class OrderTestSuite(TestCase):
         test_response = self.client.post(ITEM_POST_URL, json=test_item.serialize())
         self.assertEqual(test_response.status_code, status.HTTP_201_CREATED)
         logging.debug("Response Data: %s", test_response.get_json())
-
 
         # Make sure location header is set
         location = test_response.headers.get("Location", None)
@@ -222,7 +219,7 @@ class OrderTestSuite(TestCase):
         self.assertEqual(str(test_item.price), new_item["price"])
         self.assertEqual(new_item["quantity"], test_item.quantity)
 
-        #TODO: uncomment this code when get_item is implemented
+        # TODO: uncomment this code when get_item is implemented
 
         # Check that the location header was correct
         # response = self.client.get(location)
@@ -233,3 +230,30 @@ class OrderTestSuite(TestCase):
         # self.assertEqual(new_item["price"], test_item.price)
         # self.assertEqual(new_item["quantity"], test_item.quantity)
 
+    ######################################################################
+    #  I T E M   T E S T   C A S E S
+    ######################################################################
+    def test_list_items(self):
+        """It should Get a list of Items"""
+        # add two addresses to account
+        order = self._create_orders(1)[0]
+        item_list = ItemFactory.create_batch(2)
+
+        # Create item 1
+        resp = self.client.post(
+            f"{BASE_URL}/{order.id}/items", json=item_list[0].serialize()
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        # Create item 2
+        resp = self.client.post(
+            f"{BASE_URL}/{order.id}/items", json=item_list[1].serialize()
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        # get the list back and make sure there are 2
+        resp = self.client.get(f"{BASE_URL}/{order.id}/items")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        data = resp.get_json()
+        self.assertEqual(len(data), 2)
