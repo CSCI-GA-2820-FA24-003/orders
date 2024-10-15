@@ -48,7 +48,7 @@ class Order(db.Model, PersistentBase):
         """Converts an Order into a dictionary"""
         order = {
             "id": self.id,
-            #Changed from "date": self.date_joined.isoformat(),
+            # Changed from "date": self.date_joined.isoformat(),
             "date": self.date.isoformat(),
             "status": self.status,
             # Changed from "amount": self.amount,

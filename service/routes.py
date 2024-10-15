@@ -69,7 +69,6 @@ def create_orders():
     order.create()
     app.logger.info("Order with new id [%s] saved!", order.id)
 
-
     # Return the location of the new Order
     location_url = "unknown"
     # location_url = url_for("get_orders", order_id=order.id, _external=True)
@@ -110,6 +109,32 @@ def update_orders(order_id):
     return jsonify(order.serialize()), status.HTTP_200_OK
 
 
+######################################################################
+# DELETE AN ORDER
+######################################################################
+@app.route("/orders/<int:order_id>", methods=["DELETE"])
+def delete_orders(order_id):
+    """
+    Delete an Order
+
+    This endpoint will delete an Order based the id specified in the path
+    """
+    app.logger.info("Request to Delete an order with id [%s]", order_id)
+
+    # Delete the Order if it exists
+    order = Order.find(order_id)
+    if order:
+        app.logger.info("Order with ID: %d found.", order.id)
+        order.delete()
+
+    app.logger.info("Order with ID: %d delete complete.", order_id)
+    return {}, status.HTTP_204_NO_CONTENT
+
+
+# ---------------------------------------------------------------------
+#                ITEM   M E T H O D S
+# ---------------------------------------------------------------------
+
 
 ######################################################################
 # CREATE A NEW ITEM
@@ -137,36 +162,44 @@ def create_items(order_id):
         item.create()
     except Exception as e:
         app.logger.error("Error saving item to the database: %s", str(e))
-        return jsonify({"error": "Database error"}), status.HTTP_500_INTERNAL_SERVER_ERROR
-    
-    app.logger.info("Item with new id [%s] saved for Order ID [%s]!", item.product_id, order_id)
+        return (
+            jsonify({"error": "Database error"}),
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+    app.logger.info(
+        "Item with new id [%s] saved for Order ID [%s]!", item.product_id, order_id
+    )
 
     # Return the location of the new Item
     location_url = url_for("create_items", order_id=order_id, _external=True)
-    return jsonify(item.serialize()), status.HTTP_201_CREATED, {"Location": location_url}
-
+    return (
+        jsonify(item.serialize()),
+        status.HTTP_201_CREATED,
+        {"Location": location_url},
+    )
 
 
 ######################################################################
-# DELETE AN ORDER
+# LIST ITEMS
 ######################################################################
-@app.route("/orders/<int:order_id>", methods=["DELETE"])
-def delete_orders(order_id):
-    """
-    Delete an Order
+@app.route("/orders/<int:order_id>/items", methods=["GET"])
+def list_items(order_id):
+    """Returns all of the Items for an Order"""
+    app.logger.info("Request for all Items for Order with id: %s", order_id)
 
-    This endpoint will delete an Order based the id specified in the path
-    """
-    app.logger.info("Request to Delete an order with id [%s]", order_id)
-
-    # Delete the Order if it exists
+    # See if the order exists and abort if it doesn't
     order = Order.find(order_id)
-    if order:
-        app.logger.info("Order with ID: %d found.", order.id)
-        order.delete()
+    if not order:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Order with id '{order_id}' could not be found.",
+        )
 
-    app.logger.info("Order with ID: %d delete complete.", order_id)
-    return {}, status.HTTP_204_NO_CONTENT
+    # Get the addresses for the account
+    results = [item.serialize() for item in Item.find_by_order_id(order_id)]
+
+    return jsonify(results), status.HTTP_200_OK
 
 
 ######################################################################
