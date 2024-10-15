@@ -46,16 +46,17 @@ def index():
 
 # Todo: Place your REST API code here ...
 
+
 ######################################################################
 # CREATE A NEW ORDER
 ######################################################################
 @app.route("/orders", methods=["POST"])
 def create_orders():
     """
-    Create a Order
-    This endpoint will create a Order based the data in the body that is posted
+    Create an Order
+    This endpoint will create an Order based the data in the body that is posted
     """
-    app.logger.info("Request to Create a Order...")
+    app.logger.info("Request to Create an Order...")
     check_content_type("application/json")
 
     order = Order()
@@ -69,11 +70,14 @@ def create_orders():
     app.logger.info("Order with new id [%s] saved!", order.id)
 
 
-
     # Return the location of the new Order
     location_url = "unknown"
-    #location_url = url_for("get_orders", order_id=order.id, _external=True)
-    return jsonify(order.serialize()), status.HTTP_201_CREATED, {"Location": location_url}
+    # location_url = url_for("get_orders", order_id=order.id, _external=True)
+    return (
+        jsonify(order.serialize()),
+        status.HTTP_201_CREATED,
+        {"Location": location_url},
+    )
 
 
 ######################################################################
@@ -86,7 +90,7 @@ def update_orders(order_id):
 
     This endpoint will update an Order based the body that is posted
     """
-    app.logger.info("Request to Update a order with id [%s]", order_id)
+    app.logger.info("Request to Update an order with id [%s]", order_id)
     check_content_type("application/json")
 
     # Attempt to find the Order and abort if not found
@@ -141,6 +145,28 @@ def create_items(order_id):
     location_url = url_for("create_items", order_id=order_id, _external=True)
     return jsonify(item.serialize()), status.HTTP_201_CREATED, {"Location": location_url}
 
+
+
+######################################################################
+# DELETE AN ORDER
+######################################################################
+@app.route("/orders/<int:order_id>", methods=["DELETE"])
+def delete_orders(order_id):
+    """
+    Delete an Order
+
+    This endpoint will delete an Order based the id specified in the path
+    """
+    app.logger.info("Request to Delete an order with id [%s]", order_id)
+
+    # Delete the Order if it exists
+    order = Order.find(order_id)
+    if order:
+        app.logger.info("Order with ID: %d found.", order.id)
+        order.delete()
+
+    app.logger.info("Order with ID: %d delete complete.", order_id)
+    return {}, status.HTTP_204_NO_CONTENT
 
 
 ######################################################################
