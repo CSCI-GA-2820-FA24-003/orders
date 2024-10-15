@@ -81,7 +81,6 @@ class TestOrder(TestCase):
         self.assertEqual(data.address, order.address)
         self.assertEqual(data.customer_id, order.customer_id)
 
-
     def test_update_a_order(self):
         """It should Update a Order"""
         order = OrderFactory()
@@ -104,17 +103,26 @@ class TestOrder(TestCase):
         orders = Order.all()
         self.assertEqual(len(orders), 1)
         self.assertEqual(orders[0].id, original_id)
-        updated_date = orders[0].date.strftime('%Y-%m-%d')
+        updated_date = orders[0].date.strftime("%Y-%m-%d")
         self.assertEqual(updated_date, "2024-10-12")
         self.assertEqual(orders[0].status, 1)
         self.assertEqual(orders[0].amount, 100)
         self.assertEqual(orders[0].address, "abc")
         self.assertEqual(orders[0].customer_id, 123)
 
-
-
-
-
+    def test_delete_an_order(self):
+        """It should Delete an order from the database"""
+        orders = Order.all()
+        self.assertEqual(orders, [])
+        order = OrderFactory()
+        order.create()
+        # Assert that it was assigned an id and shows up in the database
+        self.assertIsNotNone(order.id)
+        orders = Order.all()
+        self.assertEqual(len(orders), 1)
+        order = orders[0]
+        order.delete()
+        orders = Order.all()
+        self.assertEqual(len(orders), 0)
 
     # Todo: Add your test cases here...
-
