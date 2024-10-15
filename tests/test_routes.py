@@ -183,6 +183,9 @@ class OrderTestSuite(TestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(len(response.data), 0)
 
+    ######################################################################
+    #  I T E M   T E S T   C A S E S
+    ######################################################################
     # ----------------------------------------------------------
     # TEST CREATE AN ITEM
     # ----------------------------------------------------------
@@ -231,9 +234,6 @@ class OrderTestSuite(TestCase):
         self.assertEqual(new_item["price"], str(test_item.price))
         self.assertEqual(new_item["quantity"], test_item.quantity)
 
-    ######################################################################
-    #  I T E M   T E S T   C A S E S
-    ######################################################################
     def test_list_items(self):
         """It should Get a list of Items"""
         # add two addresses to account
@@ -287,3 +287,36 @@ class OrderTestSuite(TestCase):
         self.assertEqual(data["product_id"], item.product_id)
         self.assertEqual(data["price"], str(item.price))
         self.assertEqual(data["quantity"], item.quantity)
+
+    # ----------------------------------------------------------
+    # TEST DELETE AN ITEM
+    # ----------------------------------------------------------
+
+    def test_delete_item(self):
+        """It should Delete an Item"""
+        order = self._create_orders(1)[0]
+        item = ItemFactory()
+        resp = self.client.post(
+            f"{BASE_URL}/{order.id}/items",
+            json=item.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        data = resp.get_json()
+        logging.debug(data)
+        item_id = data["product_id"]
+
+        # send delete request
+        resp = self.client.delete(
+            f"{BASE_URL}/{order.id}/items/{item_id}",
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+
+        # retrieve it back and make sure item is not there
+
+        resp = self.client.get(
+            f"{BASE_URL}/{order.id}/items/{item_id}",
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
