@@ -111,7 +111,7 @@ def update_orders(order_id):
 
 
 ######################################################################
-# DELETE A PET
+# DELETE AN ORDER
 ######################################################################
 @app.route("/orders/<int:order_id>", methods=["DELETE"])
 def delete_orders(order_id):
