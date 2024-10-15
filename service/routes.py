@@ -169,6 +169,26 @@ def delete_orders(order_id):
     return {}, status.HTTP_204_NO_CONTENT
 
 
+
+######################################################################
+# GET ALL ORDERS
+######################################################################
+@app.route("/orders", methods=["GET"])
+def list_orders():
+    """
+    Retrieve all orders sorted by date in descending order
+    """
+    app.logger.info("Request to Retrieve All Orders")
+    try:
+        orders = Order.query.order_by(Order.date.desc()).all()
+        orders_data = [order.serialize() for order in orders]
+        return jsonify(orders_data), status.HTTP_200_OK
+    except Exception as e:
+        app.logger.error("Failed to retrieve orders: %s", str(e))
+        return jsonify({"error": "Failed to retrieve orders"}), status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+
 ######################################################################
 # Checks the ContentType of a request
 ######################################################################

@@ -27,7 +27,7 @@ from service.common import status
 from service.models import db, Order
 from .factories import OrderFactory
 from .factories import ItemFactory
-from datetime import datetime
+from datetime import datetime, date
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -183,6 +183,28 @@ class OrderTestSuite(TestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(len(response.data), 0)
 
+
+    # ----------------------------------------------------------
+    # TEST GET ALL ORDERS
+    # ----------------------------------------------------------
+    def test_get_all_orders(self):
+        """It should retrieve all orders sorted by date"""
+        orders = self._create_orders(3)
+
+        response = self.client.get("/orders")
+        self.assertEqual(response.status_code, 200)
+        
+        data = response.get_json()
+        self.assertEqual(len(data), 3)
+        dates = [order['date'] for order in data]
+        self.assertEqual(dates, sorted(dates, reverse=True))
+
+    def test_get_all_orders_empty(self):
+        """Return empty list with status code 200 when there is no order"""
+        response = self.client.get("/orders")
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+        self.assertEqual(data, [])
 
 
     # ----------------------------------------------------------
