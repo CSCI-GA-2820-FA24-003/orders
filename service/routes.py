@@ -67,12 +67,8 @@ def create_orders():
     order.create()
     app.logger.info("Order with new id [%s] saved!", order.id)
 
-    # Todo : uncomment this code when get_order is implemented
-
-
     # Return the location of the new Order
-    location_url = "unknown"
-    #location_url = url_for("get_orders", order_id=order.id, _external=True)
+    location_url = url_for("get_orders", order_id=order.id, _external=True)
     return jsonify(order.serialize()), status.HTTP_201_CREATED, {"Location": location_url}
 
 

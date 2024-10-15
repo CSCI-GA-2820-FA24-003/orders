@@ -101,18 +101,16 @@ class OrderTestSuite(TestCase):
         self.assertEqual(new_order["address"], test_order.address)
         self.assertEqual(new_order["customer_id"], test_order.customer_id)
 
-        #TODO: uncomment this code when get_order is implemented
-
         # Check that the location header was correct
-        # response = self.client.get(location)
-        # self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # new_order = response.get_json()
-        # self.assertEqual(new_order["id"], test_order.id)
-        # self.assertEqual(new_order["date"], test_order.date)
-        # self.assertEqual(new_order["status"], test_order.status)
-        # self.assertEqual(new_order["amount"], test_order.amount)
-        # self.assertEqual(new_order["address"], test_order.address)
-        # self.assertEqual(new_order["customer_id"], test_order.customer_id)
+        response = self.client.get(location)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        new_order = response.get_json()
+        self.assertEqual(new_order["id"], test_order.id)
+        self.assertEqual(new_order["date"], test_order.date)
+        self.assertEqual(new_order["status"], test_order.status)
+        self.assertEqual(new_order["amount"], test_order.amount)
+        self.assertEqual(new_order["address"], test_order.address)
+        self.assertEqual(new_order["customer_id"], test_order.customer_id)
 
     # ----------------------------------------------------------
     # TEST UPDATE
@@ -149,7 +147,7 @@ class OrderTestSuite(TestCase):
     # ----------------------------------------------------------
     def test_get_order(self):
         """It should Get a single Order"""
-        # get the id of a order
+        get the id of an order
         test_order = self._create_orders(1)[0]
         response = self.client.get(f"{BASE_URL}/{test_order.id}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
