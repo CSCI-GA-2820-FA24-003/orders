@@ -141,7 +141,6 @@ class OrderTestSuite(TestCase):
         self.assertEqual(updated_order["address"], "unknown")
         self.assertEqual(updated_order["customer_id"], 0)
         
-        
     # ----------------------------------------------------------
     # TEST READ
     # ----------------------------------------------------------
