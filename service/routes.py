@@ -196,10 +196,35 @@ def list_items(order_id):
             f"Order with id '{order_id}' could not be found.",
         )
 
-    # Get the addresses for the account
+    # Get the items for the order
     results = [item.serialize() for item in Item.find_by_order_id(order_id)]
 
     return jsonify(results), status.HTTP_200_OK
+
+
+######################################################################
+# RETRIEVE AN ITEM FROM ORDER
+######################################################################
+@app.route("/orders/<int:order_id>/items/<int:product_id>", methods=["GET"])
+def get_item(order_id, product_id):
+    """
+    Get an Item
+
+    This endpoint returns just an item
+    """
+    app.logger.info(
+        "Request to retrieve Item %s for Order id: %s", (product_id, order_id)
+    )
+
+    # See if the address exists and abort if it doesn't
+    item = Item.find_by_product_id(order_id, product_id)
+    if not item:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"product with id '{product_id}' could not be found in order '{order_id}'.",
+        )
+
+    return jsonify(item.serialize()), status.HTTP_200_OK
 
 
 ######################################################################

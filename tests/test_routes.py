@@ -222,13 +222,14 @@ class OrderTestSuite(TestCase):
         # TODO: uncomment this code when get_item is implemented
 
         # Check that the location header was correct
-        # response = self.client.get(location)
-        # self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # new_item = response.get_json()
-        # self.assertEqual(new_item["order_id"], test_item.order_id)
-        # self.assertEqual(new_item["product_id"], test_item.product_id)
-        # self.assertEqual(new_item["price"], test_item.price)
-        # self.assertEqual(new_item["quantity"], test_item.quantity)
+        response = self.client.get(location)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # the returned value is a list of json
+        new_item = response.get_json()[0]
+        self.assertEqual(new_item["order_id"], test_item.order_id)
+        self.assertEqual(new_item["product_id"], test_item.product_id)
+        self.assertEqual(new_item["price"], str(test_item.price))
+        self.assertEqual(new_item["quantity"], test_item.quantity)
 
     ######################################################################
     #  I T E M   T E S T   C A S E S
@@ -257,3 +258,32 @@ class OrderTestSuite(TestCase):
 
         data = resp.get_json()
         self.assertEqual(len(data), 2)
+
+    def test_get_item(self):
+        """It should Get an item from an order"""
+        # create a known item
+        order = self._create_orders(1)[0]
+        item = ItemFactory()
+        resp = self.client.post(
+            f"{BASE_URL}/{order.id}/items",
+            json=item.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        data = resp.get_json()
+        logging.debug(data)
+        item_id = data["product_id"]
+
+        # retrieve it back
+        resp = self.client.get(
+            f"{BASE_URL}/{order.id}/items/{item_id}",
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        logging.debug(data)
+        self.assertEqual(data["order_id"], order.id)
+        self.assertEqual(data["product_id"], item.product_id)
+        self.assertEqual(data["price"], str(item.price))
+        self.assertEqual(data["quantity"], item.quantity)
