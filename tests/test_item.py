@@ -92,4 +92,22 @@ class TestItem(TestCase):
             item.amount() + new_item.amount(),
         )
 
-    # Todo: Add your test cases here...
+    def test_serialize_an_item(self):
+        """It should serialize an Item"""
+        item = ItemFactory()
+        serial_item = item.serialize()
+        self.assertEqual(serial_item["product_id"], item.product_id)
+        self.assertEqual(serial_item["order_id"], item.order_id)
+        self.assertEqual(serial_item["price"], item.price)
+        self.assertEqual(serial_item["quantity"], item.quantity)
+
+    def test_deserialize_an_item(self):
+        """It should deserialize an Item"""
+        item = ItemFactory()
+        item.create()
+        new_item = Item()
+        new_item.deserialize(item.serialize())
+        self.assertEqual(new_item.product_id, item.product_id)
+        self.assertEqual(new_item.order_id, item.order_id)
+        self.assertEqual(new_item.price, item.price)
+        self.assertEqual(new_item.quantity, item.quantity)
