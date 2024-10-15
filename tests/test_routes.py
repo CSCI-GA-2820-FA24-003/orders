@@ -27,7 +27,8 @@ from service.common import status
 from service.models import db, Order
 from .factories import OrderFactory
 from .factories import ItemFactory
-from datetime import datetime, date
+from datetime import datetime
+import unittest.mock as mock
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -205,6 +206,18 @@ class OrderTestSuite(TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.get_json()
         self.assertEqual(data, [])
+
+
+    @mock.patch('service.models.Order.query')
+    def test_get_all_orders_failure(self, mock_query):
+        """It should return 500 when an exception occurs while retrieving orders"""
+        mock_query.order_by.side_effect = Exception("Database Error")
+        
+        response = self.client.get("/orders")
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        data = response.get_json()
+        self.assertIn("Failed to retrieve orders", data["error"])
 
 
     # ----------------------------------------------------------
