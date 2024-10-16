@@ -25,6 +25,7 @@ from unittest import TestCase
 from wsgi import app
 from service.models import Order, Item, db
 from .factories import OrderFactory, ItemFactory
+from service.models.persistent_base import DataValidationError
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -174,3 +175,15 @@ class TestItem(TestCase):
         self.assertEqual(item.product_id, new_item.product_id)
         self.assertEqual(item.price, new_item.price)
         self.assertEqual(item.quantity, new_item.quantity)
+
+    def test_error_deserialize(self):
+        """It should raise DataValidationError"""
+        data = {
+            "order_id": 1,
+            "price": 1.0,
+            "quantity": 1,
+        }
+        item = Item()
+        self.assertRaises(DataValidationError, item.deserialize, data)
+        data = "not even a dic"
+        self.assertRaises(DataValidationError, item.deserialize, data)
