@@ -25,10 +25,12 @@ from unittest import TestCase
 from wsgi import app
 from service.common import status
 from service.models import db, Order
+from service.models.persistent_base import DataValidationError
 from .factories import OrderFactory
 from .factories import ItemFactory
 from datetime import datetime
 import unittest.mock as mock
+from unittest.mock import patch
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -184,7 +186,6 @@ class OrderTestSuite(TestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(len(response.data), 0)
 
-
     # ----------------------------------------------------------
     # TEST GET ALL ORDERS
     # ----------------------------------------------------------
@@ -194,10 +195,10 @@ class OrderTestSuite(TestCase):
 
         response = self.client.get("/orders")
         self.assertEqual(response.status_code, 200)
-        
+
         data = response.get_json()
         self.assertEqual(len(data), 3)
-        dates = [order['date'] for order in data]
+        dates = [order["date"] for order in data]
         self.assertEqual(dates, sorted(dates, reverse=True))
 
     def test_get_all_orders_empty(self):
@@ -207,18 +208,16 @@ class OrderTestSuite(TestCase):
         data = response.get_json()
         self.assertEqual(data, [])
 
-
-    @mock.patch('service.models.Order.query')
+    @mock.patch("service.models.Order.query")
     def test_get_all_orders_failure(self, mock_query):
         """It should return 500 when an exception occurs while retrieving orders"""
         mock_query.order_by.side_effect = Exception("Database Error")
-        
+
         response = self.client.get("/orders")
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
         data = response.get_json()
         self.assertIn("Failed to retrieve orders", data["error"])
-
 
     ######################################################################
     #  I T E M   T E S T   C A S E S
@@ -393,3 +392,61 @@ class OrderTestSuite(TestCase):
             content_type="application/json",
         )
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+
+######################################################################
+#  T E S T   S A D   P A T H S
+######################################################################
+class TestSadPaths(TestCase):
+    """Test REST Exception Handling"""
+
+    def setUp(self):
+        """Runs before each test"""
+        self.client = app.test_client()
+
+    def test_method_not_allowed(self):
+        """It should not allow update without a order id"""
+        response = self.client.put(BASE_URL)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_create_order_no_data(self):
+        """It should not Create an Order with missing data"""
+        response = self.client.post(BASE_URL, json={})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_order_no_content_type(self):
+        """It should not Create an Order with no content type"""
+        response = self.client.post(BASE_URL)
+        self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+
+    def test_create_order_wrong_content_type(self):
+        order = OrderFactory()
+        resp = self.client.post(
+            BASE_URL, json=order.serialize(), content_type="test/html"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+
+    def test_create_order_bad_available(self):
+        """It should not Create an Order with bad available data"""
+        test_order = OrderFactory()
+        logging.debug(test_order)
+        # change available to a string
+        test_order.status = "a string"
+        response = self.client.post(BASE_URL, json=test_order.serialize())
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    # def test_get_items_not_available(self):
+    #     """It should not Get items if order does not exist"""
+    #     resp = self.client.get(
+    #         f"{BASE_URL}/{-100}/items/{-100}",
+    #         content_type="application/json",
+    #     )
+    #     self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    # def test_update_items_not_available(self):
+    #     """It should not Update items if order does not exist"""
+    #     resp = self.client.put(
+    #         f"{BASE_URL}/{-100}/items/{-100}",
+    #         content_type="application/json",
+    #     )
+    #     self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
