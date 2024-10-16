@@ -70,13 +70,36 @@ def create_orders():
     app.logger.info("Order with new id [%s] saved!", order.id)
 
     # Return the location of the new Order
-    location_url = "unknown"
-    # location_url = url_for("get_orders", order_id=order.id, _external=True)
+    # location_url = "unknown"
+    location_url = url_for("get_order", order_id=order.id, _external=True)
     return (
         jsonify(order.serialize()),
         status.HTTP_201_CREATED,
         {"Location": location_url},
     )
+
+
+######################################################################
+# RETRIEVE AN ORDER
+######################################################################
+@app.route("/orders/<int:order_id>", methods=["GET"])
+def get_order(order_id):
+    """
+    Retrieve a single order
+
+    This endpoint will return an order based on its id
+    """
+    app.logger.info("Request for order with id: %s", order_id)
+
+    # See if the order exists and abort if it doesn't
+    order = Order.find(order_id)
+    if not order:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"order with id '{order_id}' could not be found.",
+        )
+
+    return jsonify(order.serialize()), status.HTTP_200_OK
 
 
 ######################################################################
@@ -227,7 +250,6 @@ def get_item(order_id, product_id):
     return jsonify(item.serialize()), status.HTTP_200_OK
 
 
-
 ######################################################################
 # GET ALL ORDERS
 ######################################################################
@@ -243,8 +265,10 @@ def list_orders():
         return jsonify(orders_data), status.HTTP_200_OK
     except Exception as e:
         app.logger.error("Failed to retrieve orders: %s", str(e))
-        return jsonify({"error": "Failed to retrieve orders"}), status.HTTP_500_INTERNAL_SERVER_ERROR
-
+        return (
+            jsonify({"error": "Failed to retrieve orders"}),
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
 ######################################################################

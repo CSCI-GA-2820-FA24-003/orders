@@ -83,6 +83,19 @@ class TestOrder(TestCase):
         self.assertEqual(data.address, order.address)
         self.assertEqual(data.customer_id, order.customer_id)
 
+    def test_read_order(self):
+        """It should Read an order"""
+        order = OrderFactory()
+        order.create()
+        # Read it back
+        found_order = order.find(order.id)
+        self.assertEqual(found_order.id, order.id)
+        self.assertEqual(found_order.date, order.date)
+        self.assertEqual(found_order.status, order.status)
+        self.assertEqual(found_order.amount, order.amount)
+        self.assertEqual(found_order.address, order.address)
+        self.assertEqual(found_order.customer_id, order.customer_id)
+
     def test_update_a_order(self):
         """It should Update a Order"""
         order = OrderFactory()
