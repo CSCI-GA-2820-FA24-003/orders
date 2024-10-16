@@ -205,8 +205,7 @@ class OrderTestSuite(TestCase):
     # ----------------------------------------------------------
     def test_get_all_orders(self):
         """It should retrieve all orders sorted by date"""
-        # orders = self._create_orders(3)
-
+        self._create_orders(3)
         response = self.client.get("/orders")
         self.assertEqual(response.status_code, 200)
 
