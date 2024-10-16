@@ -35,7 +35,57 @@ from service.common import status  # HTTP Status Codes
 def index():
     """Root URL response"""
     return (
-        "Reminder: return some useful information in json format about the service here",
+        jsonify(
+            name="Order REST API Service",
+            version="1.0",
+            description=(
+                "This is a RESTful service for managing order."
+                "You can create, update, delete, read an order, and get all order."
+                "You can also create, update, delete, get an item and get all item in a given order."
+            ),
+            paths={
+                "list_orders": {
+                    "method": "GET",
+                    "url": url_for("list_orders", _external=True),
+                },
+                "get_order": {
+                   "method": "GET",
+                   "url": url_for("get_order", order_id=1, _external=True),
+                },
+                "create_orders": {
+                    "method": "POST",
+                    "url": url_for("create_orders", _external=True),
+                },
+                "update_orders": {
+                    "method": "PUT",
+                    "url": url_for("update_orders", order_id=1, _external=True),
+                },
+                "delete_orders": {
+                    "method": "DELETE",
+                    "url": url_for("delete_orders", order_id=1, _external=True),
+                },
+                "create_items": {
+                    "method": "POST",
+                    "url": url_for("create_items", order_id=1, _external=True),
+                },
+                "list_items": {
+                    "method": "GET",
+                    "url": url_for("list_items", order_id=1, _external=True),
+                },
+                "get_item": {
+                    "method": "GET",
+                    "url": url_for("get_item", order_id=1, product_id=1, _external=True),
+                },
+                "update_items": {
+                    "method": "PUT",
+                    "url": url_for("update_items", order_id=1, product_id=1, _external=True),
+                },
+                "delete_items": {
+                    "method": "DELETE",
+                    "url": url_for("delete_items", order_id=1, product_id=1, _external=True),
+                },
+            },
+        ),
         status.HTTP_200_OK,
     )
 
