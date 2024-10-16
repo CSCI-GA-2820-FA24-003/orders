@@ -183,6 +183,10 @@ def create_items(order_id):
     # Save the new Item to the database
     try:
         item.create()
+        order = Order.find(order_id)
+        new_amount = order.amount + item.price * item.quantity
+        Order.update_amount(order_id, new_amount)
+
     except Exception as e:
         app.logger.error("Error saving item to the database: %s", str(e))
         return (
@@ -291,6 +295,9 @@ def update_items(order_id, product_id):
             status.HTTP_404_NOT_FOUND,
             f"Item with id '{product_id}' could not be found.",
         )
+    order = Order.find(order_id)
+    old_order_amount = order.amount
+    old_item_amount = item.price * item.quantity
 
     # Update from the json in the body of the request
     item.deserialize(request.get_json())
@@ -298,6 +305,10 @@ def update_items(order_id, product_id):
     item.id = product_id
     item.update()
 
+    new_item_amount = item.price * item.quantity
+    Order.update_amount(
+        order_id, old_order_amount + (new_item_amount - old_item_amount)
+    )
     return jsonify(item.serialize()), status.HTTP_200_OK
 
 
@@ -314,10 +325,15 @@ def delete_items(order_id, product_id):
     app.logger.info("Request to Delete an item with id [%s]", (product_id, order_id))
 
     # See if the item exists and delete it if it does
+    order = Order.find(order_id)
+    old_amount = order.amount
     item = Item.find_by_product_id(order_id, product_id)
     if item:
+        item_amount = item.price * item.quantity
+        old_amount -= item_amount
         item.delete()
 
+    Order.update_amount(order_id, old_amount)
     return "", status.HTTP_204_NO_CONTENT
 
 
