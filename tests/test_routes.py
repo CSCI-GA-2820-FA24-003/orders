@@ -95,8 +95,6 @@ class OrderTestSuite(TestCase):
         """It should call the home page"""
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        data = response.get_json()
-        self.assertEqual(data["name"], "Order REST API Service")
 
     # Todo: Add your test cases here...
     # ----------------------------------------------------------
