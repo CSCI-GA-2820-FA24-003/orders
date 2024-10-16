@@ -85,19 +85,38 @@ The service will be accessible at `http://127.0.0.1:8080/`. You can edit the por
 Below is the updated **API Endpoints** section of the `README.md`, organized as per your specifications and including sample request and response examples based on your provided code.Z
 
 #### General Endpoint
+### API Endpoints
+
+#### General Endpoint
 
 - **Root URL**
 
     - **URL**: `/`
+
     - **Method**: `GET`
-    - **Description**: Returns a JSON object with basic information about the service.
+
+    - **Description**: Returns a JSON object containing information about the Order REST API Service, including available endpoints and their corresponding methods and URLs.
+
     - **Response**:
 
-      ```json
-      {
-          "message": "Welcome to the Order Management Service API."
-      }
-      ```
+        ```json
+        {
+            "name": "Order REST API Service",
+            "version": "1.0",
+            "description": "This is a RESTful service for managing order.You can create, update, delete, read an order, and get all order.You can also create, update, delete, get an item and get all item in a given order.",
+            "paths": {
+                "list_orders": {
+                    "method": "GET",
+                    "url": "http://127.0.0.1:8080/orders"
+                },
+                ... other api endpoints ...
+            }
+        }
+        ```
+
+    - **Status Code**: `200 OK`
+
+**Note**: The URLs in the response will reflect the actual host and port where your service is running. The `url_for` function in Flask generates these URLs dynamically.
 
 ---
 
