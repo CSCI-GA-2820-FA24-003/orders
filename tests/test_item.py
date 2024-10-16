@@ -164,8 +164,8 @@ class TestItem(TestCase):
         self.assertEqual(serial_item["quantity"], item.quantity)
         self.assertEqual(serial_item["price"], item.price)
 
-    def test_deserialize_an_address(self):
-        """It should deserialize an Address"""
+    def test_deserialize_an_item(self):
+        """It should deserialize an Item"""
         order = OrderFactory()
         item = ItemFactory(order=order)
         order.create()
@@ -176,14 +176,12 @@ class TestItem(TestCase):
         self.assertEqual(item.price, new_item.price)
         self.assertEqual(item.quantity, new_item.quantity)
 
-    def test_error_deserialize(self):
-        """It should raise DataValidationError"""
-        data = {
-            "order_id": 1,
-            "price": 1.0,
-            "quantity": 1,
-        }
+    def test_deserialize_with_key_error(self):
+        """It should not Deserialize an item with a KeyError"""
         item = Item()
-        self.assertRaises(DataValidationError, item.deserialize, data)
-        data = "not even a dic"
-        self.assertRaises(DataValidationError, item.deserialize, data)
+        self.assertRaises(DataValidationError, item.deserialize, {})
+
+    def test_deserialize_with_type_error(self):
+        """It should not Deserialize an item with a TypeError"""
+        item = Item()
+        self.assertRaises(DataValidationError, item.deserialize, [])
