@@ -80,321 +80,399 @@ flask run
 
 The service will be accessible at `http://127.0.0.1:8080/`. You can edit the port in `.flaskenv`.
 
-### API Endpoints
+---
 
-Below is the updated **API Endpoints** section of the `README.md`, organized as per your specifications and including sample request and response examples based on your provided code.Z
+## Data Model
+### Order
 
-#### General Endpoint
-### API Endpoints
+- `id` (Integer): The unique identifier for the order.
+- `date` (String): The date when the order was created in ISO format (`YYYY-MM-DD`).
+- `status` (Integer): The status of the order.
+- `amount` (Float): The total amount of the order.
+- `address` (String): The shipping address for the order.
+- `customer_id` (Integer): The identifier for the customer who placed the order.
 
-#### General Endpoint
+### Item
 
-- **Root URL**
+- `product_id` (Integer): The unique identifier for the product.
+- `order_id` (Integer): The identifier for the order to which the item belongs.
+- `price` (Float): The price of the item.
+- `quantity` (Integer): The quantity of the item ordered.
 
-    - **URL**: `/`
+---
 
-    - **Method**: `GET`
+## Order REST API Service
 
-    - **Description**: Returns a JSON object containing information about the Order REST API Service, including available endpoints and their corresponding methods and URLs.
+This is a RESTful service for managing orders. You can create, read, update, and delete orders, as well as create, read, update, and delete items within orders.
 
-    - **Response**:
+### Table of Contents
 
-        ```json
-        {
-            "name": "Order REST API Service",
-            "version": "1.0",
-            "description": "This is a RESTful service for managing order.You can create, update, delete, read an order, and get all order.You can also create, update, delete, get an item and get all item in a given order.",
-            "paths": {
-                "list_orders": {
-                    "method": "GET",
-                    "url": "http://127.0.0.1:8080/orders"
-                },
-                ... other api endpoints ...
-            }
+- [General Endpoint](#general-endpoint)
+- [Order Endpoints](#order-endpoints)
+  - [List All Orders](#list-all-orders)
+  - [Create a New Order](#create-a-new-order)
+  - [Read an Order](#read-an-order)
+  - [Update an Order](#update-an-order)
+  - [Delete an Order](#delete-an-order)
+- [Item Endpoints](#item-endpoints)
+  - [List All Items in an Order](#list-all-items-in-an-order)
+  - [Create a New Item in an Order](#create-a-new-item-in-an-order)
+  - [Read an Item from an Order](#read-an-item-from-an-order)
+  - [Update an Item in an Order](#update-an-item-in-an-order)
+  - [Delete an Item from an Order](#delete-an-item-from-an-order)
+- [Error Handling](#error-handling)
+- [Data Model](#data-model)
+- [Running the Application](#running-the-application)
+- [Testing](#testing)
+- [License](#license)
+- [Authors](#authors)
+
+---
+
+### General Endpoint
+
+#### Root URL
+
+- **URL**: `/`
+- **Method**: `GET`
+- **Description**: Returns a JSON object containing information about the Order REST API Service, including available endpoints and their corresponding methods and URLs.
+- **Response**:
+
+    ```json
+    {
+        "name": "Order REST API Service",
+        "version": "1.0",
+        "description": "This is a RESTful service for managing orders. You can create, read, update, and delete orders, as well as manage items within orders.",
+        "paths": {
+            "list_orders": {
+                "method": "GET",
+                "url": "http://127.0.0.1:5000/orders"
+            },
+            ... other apis ...
+            "get_item": {
+                "method": "GET",
+                "url": "http://127.0.0.1:5000/orders/{order_id}/items/{product_id}"
+            },
         }
-        ```
+    }
+    ```
 
-    - **Status Code**: `200 OK`
+- **Status Code**: `200 OK`
 
 **Note**: The URLs in the response will reflect the actual host and port where your service is running. The `url_for` function in Flask generates these URLs dynamically.
 
 ---
 
-#### Order Endpoints
+### Order Endpoints
 
-- **List All Orders**
+#### List All Orders
 
-    - **URL**: `/orders`
-    - **Method**: `GET`
-    - **Description**: Retrieves all orders sorted by date in descending order.
-    - **Response**:
+- **URL**: `/orders`
+- **Method**: `GET`
+- **Description**: Retrieves all orders sorted by date in descending order.
+- **Response**:
 
-      ```json
-      [
-          {
-              "id": 2,
-              "customer_name": "John Doe",
-              "date_created": "2024-10-16T12:34:56",
-              "date_updated": "2024-10-16T12:34:56",
-              "status": "processing",
-              "items": [
-                  {
-                      "product_id": 101,
-                      "quantity": 2,
-                      "price": 19.99
-                  }
-              ]
-          },
-          {
-              "id": 1,
-              "customer_name": "Jane Smith",
-              "date_created": "2024-10-15T11:22:33",
-              "date_updated": "2024-10-15T11:22:33",
-              "status": "shipped",
-              "items": [
-                  {
-                      "product_id": 102,
-                      "quantity": 1,
-                      "price": 49.99
-                  }
-              ]
-          }
-      ]
-      ```
+    ```json
+    [
+        {
+            "id": 2,
+            "date": "2024-10-16",
+            "status": 1,
+            "amount": 49.98,
+            "address": "456 Elm St",
+            "customer_id": 42
+        },
+        {
+            "id": 1,
+            "date": "2024-10-15",
+            "status": 2,
+            "amount": 99.99,
+            "address": "123 Main St",
+            "customer_id": 24
+        }
+    ]
+    ```
 
-    - **Status Code**: `200 OK`
-
-- **Create a New Order**
-
-    - **URL**: `/orders`
-    - **Method**: `POST`
-    - **Description**: Creates a new order with the provided details.
-    - **Request Body**:
-
-      ```json
-      {
-          "customer_name": "Alice Johnson",
-          "status": "processing",
-          "items": [
-              {
-                  "product_id": 103,
-                  "quantity": 1,
-                  "price": 29.99
-              },
-              {
-                  "product_id": 104,
-                  "quantity": 2,
-                  "price": 9.99
-              }
-          ]
-      }
-      ```
-
-    - **Response**:
-
-      ```json
-      {
-          "id": 3,
-          "customer_name": "Alice Johnson",
-          "date_created": "2024-10-16T13:00:00",
-          "date_updated": "2024-10-16T13:00:00",
-          "status": "processing",
-          "items": [
-              {
-                  "product_id": 103,
-                  "quantity": 1,
-                  "price": 29.99
-              },
-              {
-                  "product_id": 104,
-                  "quantity": 2,
-                  "price": 9.99
-              }
-          ]
-      }
-      ```
-
-    - **Status Code**: `201 Created`
-
-- **Read an Order**
-
-    - **URL**: `/orders/{order_id}`
-    - **Method**: `GET`
-    - **Description**: Retrieves details of a specific order by its ID.
-    - **Response**:
-
-      ```json
-      {
-          "id": 1,
-          "customer_name": "Jane Smith",
-          "date_created": "2024-10-15T11:22:33",
-          "date_updated": "2024-10-15T11:22:33",
-          "status": "shipped",
-          "items": [
-              {
-                  "product_id": 102,
-                  "quantity": 1,
-                  "price": 49.99
-              }
-          ]
-      }
-      ```
-
-    - **Status Code**: `200 OK`
-
-- **Update an Order**
-
-    - **URL**: `/orders/{order_id}`
-    - **Method**: `PUT`
-    - **Description**: Updates an existing order with new information.
-    - **Request Body**:
-
-      ```json
-      {
-          "customer_name": "Jane Smith",
-          "status": "delivered"
-      }
-      ```
-
-    - **Response**:
-
-      ```json
-      {
-          "id": 1,
-          "customer_name": "Jane Smith",
-          "date_created": "2024-10-15T11:22:33",
-          "date_updated": "2024-10-16T14:00:00",
-          "status": "delivered",
-          "items": [
-              {
-                  "product_id": 102,
-                  "quantity": 1,
-                  "price": 49.99
-              }
-          ]
-      }
-      ```
-
-    - **Status Code**: `200 OK`
-
-- **Delete an Order**
-
-    - **URL**: `/orders/{order_id}`
-    - **Method**: `DELETE`
-    - **Description**: Deletes an order by its ID.
-    - **Response**:
-
-      - **Status Code**: `204 No Content`
+- **Status Code**: `200 OK`
 
 ---
 
-#### Item Endpoints
+#### Create a New Order
 
-- **List All Items in an Order**
+- **URL**: `/orders`
+- **Method**: `POST`
+- **Description**: Creates a new order with the provided details.
+- **Request Headers**:
 
-    - **URL**: `/orders/{order_id}/items`
-    - **Method**: `GET`
-    - **Description**: Retrieves all items associated with a specific order.
-    - **Response**:
+    - `Content-Type: application/json`
 
-      ```json
-      [
-          {
-              "product_id": 103,
-              "quantity": 1,
-              "price": 29.99
-          },
-          {
-              "product_id": 104,
-              "quantity": 2,
-              "price": 9.99
-          }
-      ]
-      ```
+- **Request Body**:
 
-    - **Status Code**: `200 OK`
+    ```json
+    {
+        "id": 3,
+        "date": "2024-10-17",
+        "status": 1,
+        "amount": 150.00,
+        "address": "789 Oak Ave",
+        "customer_id": 55
+    }
+    ```
 
-- **Create a New Item in an Order**
+- **Response**:
 
-    - **URL**: `/orders/{order_id}/items`
-    - **Method**: `POST`
-    - **Description**: Adds a new item to an existing order.
-    - **Request Body**:
+    ```json
+    {
+        "id": 3,
+        "date": "2024-10-17",
+        "status": 1,
+        "amount": 150.00,
+        "address": "789 Oak Ave",
+        "customer_id": 55
+    }
+    ```
 
-      ```json
-      {
-          "product_id": 105,
-          "quantity": 1,
-          "price": 19.99
-      }
-      ```
+- **Status Code**: `201 Created`
+- **Headers**:
 
-    - **Response**:
+    - `Location`: `http://127.0.0.1:5000/orders/3`
 
-      ```json
-      {
-          "order_id": 3,
-          "product_id": 105,
-          "quantity": 1,
-          "price": 19.99
-      }
-      ```
+**Note**: In typical RESTful APIs, the `id` is generated by the server and should not be provided in the request body when creating a new resource. However, based on the provided code, the `id` is expected. Adjust your implementation accordingly.
 
-    - **Status Code**: `201 Created`
+---
 
-- **Read an Item from an Order**
+#### Read an Order
 
-    - **URL**: `/orders/{order_id}/items/{product_id}`
-    - **Method**: `GET`
-    - **Description**: Retrieves details of a specific item within an order.
-    - **Response**:
+- **URL**: `/orders/{order_id}`
+- **Method**: `GET`
+- **Description**: Retrieves details of a specific order by its ID.
+- **Response**:
 
-      ```json
-      {
-          "order_id": 3,
-          "product_id": 103,
-          "quantity": 1,
-          "price": 29.99
-      }
-      ```
+    ```json
+    {
+        "id": 1,
+        "date": "2024-10-15",
+        "status": 2,
+        "amount": 99.99,
+        "address": "123 Main St",
+        "customer_id": 24
+    }
+    ```
 
-    - **Status Code**: `200 OK`
+- **Status Code**: `200 OK`
 
-- **Update an Item in an Order**
+---
 
-    - **URL**: `/orders/{order_id}/items/{product_id}`
-    - **Method**: `PUT`
-    - **Description**: Updates details of a specific item within an order.
-    - **Request Body**:
+#### Update an Order
 
-      ```json
-      {
-          "quantity": 2,
-          "price": 28.99
-      }
-      ```
+- **URL**: `/orders/{order_id}`
+- **Method**: `PUT`
+- **Description**: Updates an existing order with new information.
+- **Request Headers**:
 
-    - **Response**:
+    - `Content-Type: application/json`
 
-      ```json
-      {
-          "order_id": 3,
-          "product_id": 103,
-          "quantity": 2,
-          "price": 28.99
-      }
-      ```
+- **Request Body**:
 
-    - **Status Code**: `200 OK`
+    ```json
+    {
+        "id": 1,
+        "date": "2024-10-15",
+        "status": 3,
+        "amount": 109.99,
+        "address": "123 Main St, Apt 4",
+        "customer_id": 24
+    }
+    ```
 
-- **Delete an Item from an Order**
+- **Response**:
 
-    - **URL**: `/orders/{order_id}/items/{product_id}`
-    - **Method**: `DELETE`
-    - **Description**: Deletes a specific item from an order.
-    - **Response**:
+    ```json
+    {
+        "id": 1,
+        "date": "2024-10-15",
+        "status": 3,
+        "amount": 109.99,
+        "address": "123 Main St, Apt 4",
+        "customer_id": 24
+    }
+    ```
 
-      - **Status Code**: `204 No Content`
+- **Status Code**: `200 OK`
+
+---
+
+#### Delete an Order
+
+- **URL**: `/orders/{order_id}`
+- **Method**: `DELETE`
+- **Description**: Deletes an order by its ID.
+- **Response**:
+
+    - **Status Code**: `204 No Content`
+
+---
+
+### Item Endpoints
+
+#### List All Items in an Order
+
+- **URL**: `/orders/{order_id}/items`
+- **Method**: `GET`
+- **Description**: Retrieves all items associated with a specific order.
+- **Response**:
+
+    ```json
+    [
+        {
+            "order_id": 1,
+            "product_id": 101,
+            "price": 19.99,
+            "quantity": 2
+        },
+        {
+            "order_id": 1,
+            "product_id": 102,
+            "price": 29.99,
+            "quantity": 1
+        }
+    ]
+    ```
+
+- **Status Code**: `200 OK`
+
+---
+
+#### Create a New Item in an Order
+
+- **URL**: `/orders/{order_id}/items`
+- **Method**: `POST`
+- **Description**: Adds a new item to an existing order.
+- **Request Headers**:
+
+    - `Content-Type: application/json`
+
+- **Request Body**:
+
+    ```json
+    {
+        "order_id": 1,
+        "product_id": 103,
+        "price": 9.99,
+        "quantity": 3
+    }
+    ```
+
+- **Response**:
+
+    ```json
+    {
+        "order_id": 1,
+        "product_id": 103,
+        "price": 9.99,
+        "quantity": 3
+    }
+    ```
+
+- **Status Code**: `201 Created`
+- **Headers**:
+
+    - `Location`: `http://127.0.0.1:5000/orders/1/items`
+
+**Note**: The `order_id` in the request body should match the `order_id` in the URL. In practice, you might not need to provide `order_id` in the request body since it's obtained from the URL.
+
+---
+
+#### Read an Item from an Order
+
+- **URL**: `/orders/{order_id}/items/{product_id}`
+- **Method**: `GET`
+- **Description**: Retrieves details of a specific item within an order.
+- **Response**:
+
+    ```json
+    {
+        "order_id": 1,
+        "product_id": 101,
+        "price": 19.99,
+        "quantity": 2
+    }
+    ```
+
+- **Status Code**: `200 OK`
+
+---
+
+#### Update an Item in an Order
+
+- **URL**: `/orders/{order_id}/items/{product_id}`
+- **Method**: `PUT`
+- **Description**: Updates details of a specific item within an order.
+- **Request Headers**:
+
+    - `Content-Type: application/json`
+
+- **Request Body**:
+
+    ```json
+    {
+        "order_id": 1,
+        "product_id": 101,
+        "price": 18.99,
+        "quantity": 3
+    }
+    ```
+
+- **Response**:
+
+    ```json
+    {
+        "order_id": 1,
+        "product_id": 101,
+        "price": 18.99,
+        "quantity": 3
+    }
+    ```
+
+- **Status Code**: `200 OK`
+
+---
+
+#### Delete an Item from an Order
+
+- **URL**: `/orders/{order_id}/items/{product_id}`
+- **Method**: `DELETE`
+- **Description**: Deletes a specific item from an order.
+- **Response**:
+
+    - **Status Code**: `204 No Content`
+
+---
+
+## Error Handling
+
+The API returns standard HTTP status codes to indicate the success or failure of an API request. Possible status codes include:
+
+- `200 OK`: The request was successful.
+- `201 Created`: The resource was successfully created.
+- `204 No Content`: The request was successful, but there is no content to return.
+- `400 Bad Request`: The request was invalid or cannot be served.
+- `404 Not Found`: The requested resource could not be found.
+- `415 Unsupported Media Type`: The request's content type is invalid or not supported.
+- `500 Internal Server Error`: An error occurred on the server.
+
+Error responses typically include a JSON object with an `error` message:
+
+```json
+{
+    "error": "Description of the error"
+}
+```
+
+---
+
+
+
 
 ### CLI Commands
 
