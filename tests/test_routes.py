@@ -146,7 +146,7 @@ class OrderTestSuite(TestCase):
     # ----------------------------------------------------------
     def test_get_order(self):
         """It should Get a single Order"""
-        get the id of an order
+        # get the id of an order
         test_order = self._create_orders(1)[0]
         response = self.client.get(f"{BASE_URL}/{test_order.id}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
