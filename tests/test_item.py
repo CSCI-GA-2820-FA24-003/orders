@@ -25,6 +25,7 @@ from unittest import TestCase
 from wsgi import app
 from service.models import Order, Item, db
 from .factories import OrderFactory, ItemFactory
+from service.models.persistent_base import DataValidationError
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -92,4 +93,97 @@ class TestItem(TestCase):
             item.amount() + new_item.amount(),
         )
 
-    # Todo: Add your test cases here...
+    def test_update_order_item(self):
+        """It should Update an item in an order"""
+        orders = Order.all()
+        self.assertEqual(orders, [])
+
+        order = OrderFactory()
+        item = ItemFactory(order=order)
+        order.create()
+        # Assert that it was assigned an id and shows up in the database
+        self.assertIsNotNone(order.id)
+        orders = Order.all()
+        self.assertEqual(len(orders), 1)
+
+        # Fetch it back
+        order = Order.find(order.id)
+        old_item = Item.find_by_product_id(order.id, item.product_id)
+        print("%r", old_item)
+        self.assertEqual(old_item.quantity, item.quantity)
+        # Change the quantity of item and update the amount in order
+        old_item_quantity = old_item.quantity
+        old_item.quantity = old_item_quantity + 10
+        old_order_amount = order.amount
+        new_order_amount = old_order_amount + 10 * old_item.price
+        Order.update_amount(order.id, new_order_amount)
+
+        # Fetch it back again
+        order = Order.find(order.id)
+        item = Item.find_by_product_id(order.id, old_item.product_id)
+        self.assertEqual(item.quantity, old_item_quantity + 10)
+        self.assertEqual(order.amount, new_order_amount)
+
+    def test_delete_order_item(self):
+        """It should Delete an item of an order"""
+        orders = Order.all()
+        self.assertEqual(orders, [])
+
+        order = OrderFactory()
+        item = ItemFactory(order=order)
+        order.create()
+        # Assert that it was assigned an id and shows up in the database
+        self.assertIsNotNone(order.id)
+        orders = Order.all()
+        self.assertEqual(len(orders), 1)
+
+        # Fetch it back
+        order = Order.find(order.id)
+        item = Item.find_by_product_id(order.id, item.product_id)
+        delete_item_id = item.product_id
+        # amount that order should subtract
+        amount_of_item = item.price * item.quantity
+        order_new_amount = order.amount - amount_of_item
+
+        item.delete()
+        Order.update_amount(order.id, order_new_amount)
+
+        # Fetch it back again
+        order = Order.find(order.id)
+        self.assertEqual(order.amount, order_new_amount)
+        item = Item.find_by_product_id(order.id, delete_item_id)
+        self.assertEqual(item, None)
+
+    def test_serialize_an_item(self):
+        """It should serialize an Item"""
+        order = OrderFactory()
+        item = ItemFactory(order=order)
+        serial_item = item.serialize()
+        self.assertEqual(serial_item["order_id"], item.order_id)
+        self.assertEqual(serial_item["product_id"], item.product_id)
+        self.assertEqual(serial_item["quantity"], item.quantity)
+        self.assertEqual(serial_item["price"], item.price)
+
+    def test_deserialize_an_address(self):
+        """It should deserialize an Address"""
+        order = OrderFactory()
+        item = ItemFactory(order=order)
+        order.create()
+        item.create()
+        new_item = Item()
+        new_item.deserialize(item.serialize())
+        self.assertEqual(item.product_id, new_item.product_id)
+        self.assertEqual(item.price, new_item.price)
+        self.assertEqual(item.quantity, new_item.quantity)
+
+    def test_error_deserialize(self):
+        """It should raise DataValidationError"""
+        data = {
+            "order_id": 1,
+            "price": 1.0,
+            "quantity": 1,
+        }
+        item = Item()
+        self.assertRaises(DataValidationError, item.deserialize, data)
+        data = "not even a dic"
+        self.assertRaises(DataValidationError, item.deserialize, data)
