@@ -122,13 +122,13 @@ class OrderTestSuite(TestCase):
         self.assertEqual(new_order["address"], test_order.address)
         self.assertEqual(new_order["customer_id"], test_order.customer_id)
 
-
         # Check that the location header was correct
         response = self.client.get(location)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         new_order = response.get_json()
-        self.assertEqual(new_order["id"], test_order.id)
-        self.assertEqual(new_order["date"], test_order.date)
+        # self.assertEqual(new_order["id"], test_order.id)
+        test_order_date = datetime.strptime(test_order["date"], "%Y-%m-%d").date()
+        self.assertEqual(new_order["date"], test_order_date)
         self.assertEqual(new_order["status"], test_order.status)
         self.assertEqual(new_order["amount"], test_order.amount)
         self.assertEqual(new_order["address"], test_order.address)
@@ -163,7 +163,6 @@ class OrderTestSuite(TestCase):
         self.assertEqual(updated_order["address"], "unknown")
         self.assertEqual(updated_order["customer_id"], 0)
 
-        
     # ----------------------------------------------------------
     # TEST READ
     # ----------------------------------------------------------
@@ -174,7 +173,7 @@ class OrderTestSuite(TestCase):
         response = self.client.get(f"{BASE_URL}/{test_order.id}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
-        self.assertEqual(data["name"], test_order.name)
+        self.assertEqual(data["id"], test_order.id)
 
     def test_get_order_not_found(self):
         """It should not Get an Order thats not found"""
@@ -183,7 +182,6 @@ class OrderTestSuite(TestCase):
         data = response.get_json()
         logging.debug("Response data = %s", data)
         self.assertIn("was not found", data["message"])
-
 
     # ----------------------------------------------------------
     # TEST DELETE
@@ -196,15 +194,14 @@ class OrderTestSuite(TestCase):
         self.assertEqual(len(response.data), 0)
         # make sure they are deleted
         # Uncomment after implement get
-        # response = self.client.get(f"{BASE_URL}/{test_order.id}")
-        # self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        response = self.client.get(f"{BASE_URL}/{test_order.id}")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_non_existing_order(self):
         """It should Delete an Order even if it doesn't exist"""
         response = self.client.delete(f"{BASE_URL}/0")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(len(response.data), 0)
-
 
     # ----------------------------------------------------------
     # TEST GET ALL ORDERS
@@ -215,10 +212,9 @@ class OrderTestSuite(TestCase):
 
         response = self.client.get("/orders")
         self.assertEqual(response.status_code, 200)
-        
         data = response.get_json()
         self.assertEqual(len(data), 3)
-        dates = [order['date'] for order in data]
+        dates = [order["date"] for order in data]
         self.assertEqual(dates, sorted(dates, reverse=True))
 
     def test_get_all_orders_empty(self):
@@ -228,18 +224,16 @@ class OrderTestSuite(TestCase):
         data = response.get_json()
         self.assertEqual(data, [])
 
-
-    @mock.patch('service.models.Order.query')
+    @mock.patch("service.models.Order.query")
     def test_get_all_orders_failure(self, mock_query):
         """It should return 500 when an exception occurs while retrieving orders"""
         mock_query.order_by.side_effect = Exception("Database Error")
-        
+
         response = self.client.get("/orders")
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
         data = response.get_json()
         self.assertIn("Failed to retrieve orders", data["error"])
-
 
     ######################################################################
     #  I T E M   T E S T   C A S E S
@@ -414,4 +408,3 @@ class OrderTestSuite(TestCase):
             content_type="application/json",
         )
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
-

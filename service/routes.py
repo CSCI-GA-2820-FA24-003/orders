@@ -71,8 +71,11 @@ def create_orders():
 
     # Return the location of the new Order
     location_url = url_for("get_orders", order_id=order.id, _external=True)
-    return jsonify(order.serialize()), status.HTTP_201_CREATED, {"Location": location_url}
-
+    return (
+        jsonify(order.serialize()),
+        status.HTTP_201_CREATED,
+        {"Location": location_url},
+    )
 
 
 ######################################################################
@@ -122,10 +125,11 @@ def get_orders(order_id):
     if not order:
         abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' was not found.")
 
-    app.logger.info("Returning order: %s", order.name)
+    # app.logger.info("Returning order: %s", order.name)
     return jsonify(order.serialize()), status.HTTP_200_OK
-  
-###################################################################### 
+
+
+######################################################################
 # DELETE AN ORDER
 ######################################################################
 @app.route("/orders/<int:order_id>", methods=["DELETE"])
@@ -243,7 +247,6 @@ def get_item(order_id, product_id):
     return jsonify(item.serialize()), status.HTTP_200_OK
 
 
-
 ######################################################################
 # GET ALL ORDERS
 ######################################################################
@@ -259,8 +262,10 @@ def list_orders():
         return jsonify(orders_data), status.HTTP_200_OK
     except Exception as e:
         app.logger.error("Failed to retrieve orders: %s", str(e))
-        return jsonify({"error": "Failed to retrieve orders"}), status.HTTP_500_INTERNAL_SERVER_ERROR
-
+        return (
+            jsonify({"error": "Failed to retrieve orders"}),
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
 ######################################################################
@@ -333,4 +338,3 @@ def check_content_type(content_type) -> None:
         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
         f"Content-Type must be {content_type}",
     )
-
