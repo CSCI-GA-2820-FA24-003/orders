@@ -148,42 +148,11 @@ This is a RESTful service for managing orders. You can create, read, update, and
                 "method": "GET",
                 "url": "http://127.0.0.1:5000/orders"
             },
-            "create_order": {
-                "method": "POST",
-                "url": "http://127.0.0.1:5000/orders"
-            },
-            "get_order": {
-                "method": "GET",
-                "url": "http://127.0.0.1:5000/orders/{order_id}"
-            },
-            "update_order": {
-                "method": "PUT",
-                "url": "http://127.0.0.1:5000/orders/{order_id}"
-            },
-            "delete_order": {
-                "method": "DELETE",
-                "url": "http://127.0.0.1:5000/orders/{order_id}"
-            },
-            "list_items": {
-                "method": "GET",
-                "url": "http://127.0.0.1:5000/orders/{order_id}/items"
-            },
-            "create_item": {
-                "method": "POST",
-                "url": "http://127.0.0.1:5000/orders/{order_id}/items"
-            },
+            ... other apis ...
             "get_item": {
                 "method": "GET",
                 "url": "http://127.0.0.1:5000/orders/{order_id}/items/{product_id}"
             },
-            "update_item": {
-                "method": "PUT",
-                "url": "http://127.0.0.1:5000/orders/{order_id}/items/{product_id}"
-            },
-            "delete_item": {
-                "method": "DELETE",
-                "url": "http://127.0.0.1:5000/orders/{order_id}/items/{product_id}"
-            }
         }
     }
     ```
