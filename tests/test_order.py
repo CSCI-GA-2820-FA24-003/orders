@@ -25,6 +25,7 @@ from unittest import TestCase
 from wsgi import app
 from service.models import Order, db
 from .factories import OrderFactory
+from .factories import ItemFactory
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -109,6 +110,24 @@ class TestOrder(TestCase):
         self.assertEqual(orders[0].amount, 100)
         self.assertEqual(orders[0].address, "abc")
         self.assertEqual(orders[0].customer_id, 123)
+
+    def test_list_all_orders(self):
+        """It should List All Orders"""
+        # Create a couple of orders
+        order1 = OrderFactory()
+        order1.create()
+        order2 = OrderFactory()
+        order2.create()
+
+        # Retrieve all orders
+        orders = Order.all()
+        self.assertEqual(len(orders), 2)
+        self.assertIn(order1, orders)
+        self.assertIn(order2, orders)
+
+
+
+
 
 
     # Todo: Add your test cases here...
