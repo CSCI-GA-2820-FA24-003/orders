@@ -86,6 +86,16 @@ class Order(db.Model, PersistentBase):
 
         return self
 
+    @classmethod
+    def update_amount(cls, order_id, amount):
+        """update the amount in an order
+
+        Args:
+            order_id: the id of the order you want to match
+        """
+        logger.info("Processing order update for %s ...", order_id)
+        return cls.query.filter(cls.id == order_id).update({cls.amount: amount})
+
     # @classmethod
     # def find_by_name(cls, name):
     #     """Returns all Accounts with the given name

@@ -232,7 +232,7 @@ def get_item(order_id, product_id):
         "Request to retrieve Item %s for Order id: %s", (product_id, order_id)
     )
 
-    # See if the address exists and abort if it doesn't
+    # See if the item exists and abort if it doesn't
     item = Item.find_by_product_id(order_id, product_id)
     if not item:
         abort(
@@ -261,6 +261,36 @@ def list_orders():
         app.logger.error("Failed to retrieve orders: %s", str(e))
         return jsonify({"error": "Failed to retrieve orders"}), status.HTTP_500_INTERNAL_SERVER_ERROR
 
+
+
+######################################################################
+# UPDATE AN ITEM
+######################################################################
+@app.route("/orders/<int:order_id>/items/<int:product_id>", methods=["PUT"])
+def update_items(order_id, product_id):
+    """
+    Update an Item
+
+    This endpoint will update an Item based the body that is posted
+    """
+    app.logger.info("Request to update Item %s for Item id: %s", (product_id, order_id))
+    check_content_type("application/json")
+
+    # See if the item exists and abort if it doesn't
+    item = Item.find_by_product_id(order_id, product_id)
+    if not item:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Item with id '{product_id}' could not be found.",
+        )
+
+    # Update from the json in the body of the request
+    item.deserialize(request.get_json())
+    item.order_id = order_id
+    item.id = product_id
+    item.update()
+
+    return jsonify(item.serialize()), status.HTTP_200_OK
 
 
 ######################################################################

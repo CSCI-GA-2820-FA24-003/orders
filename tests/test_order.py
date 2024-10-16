@@ -22,10 +22,12 @@ Test cases for Order Model
 import os
 import logging
 from unittest import TestCase
+from unittest.mock import patch
 from wsgi import app
-from service.models import Order, db
+from service.models import Order, Item, db
 from .factories import OrderFactory
 from .factories import ItemFactory
+from service.models.persistent_base import DataValidationError
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -81,7 +83,6 @@ class TestOrder(TestCase):
         self.assertEqual(data.address, order.address)
         self.assertEqual(data.customer_id, order.customer_id)
 
-
     def test_update_a_order(self):
         """It should Update a Order"""
         order = OrderFactory()
@@ -104,7 +105,7 @@ class TestOrder(TestCase):
         orders = Order.all()
         self.assertEqual(len(orders), 1)
         self.assertEqual(orders[0].id, original_id)
-        updated_date = orders[0].date.strftime('%Y-%m-%d')
+        updated_date = orders[0].date.strftime("%Y-%m-%d")
         self.assertEqual(updated_date, "2024-10-12")
         self.assertEqual(orders[0].status, 1)
         self.assertEqual(orders[0].amount, 100)
@@ -125,10 +126,99 @@ class TestOrder(TestCase):
         self.assertIn(order1, orders)
         self.assertIn(order2, orders)
 
+    def test_add_an_order(self):
+        """It should Create an order and add it to the database"""
+        orders = Order.all()
+        self.assertEqual(orders, [])
+        order = OrderFactory()
+        order.create()
+        # Assert that it was assigned an id and shows up in the database
+        self.assertIsNotNone(order.id)
+        orders = Order.all()
+        self.assertEqual(len(orders), 1)
 
+    def test_delete_an_order(self):
+        """It should Delete an order from the database"""
+        orders = Order.all()
+        self.assertEqual(orders, [])
+        order = OrderFactory()
+        order.create()
+        # Assert that it was assigned an id and shows up in the database
+        self.assertIsNotNone(order.id)
+        orders = Order.all()
+        self.assertEqual(len(orders), 1)
+        order = orders[0]
 
+        # delete related items
+        new_item = ItemFactory(order=order)
+        new_item.create()
+        items = Item.find_by_order_id(order.id)
+        self.assertEqual(len(items), 1)
+        for item in items:
+            item.delete()
+        items = Item.find_by_order_id(order.id)
+        self.assertEqual(len(items), 0)
+        # delete order
+        order.delete()
+        orders = Order.all()
+        self.assertEqual(len(orders), 0)
 
+    def test_serialize_an_order(self):
+        """It should Serialize an order"""
+        order = OrderFactory()
+        serial_order = order.serialize()
+        self.assertEqual(serial_order["id"], order.id)
+        self.assertEqual(serial_order["date"], str(order.date))
+        self.assertEqual(serial_order["status"], order.status)
+        self.assertEqual(serial_order["amount"], order.amount)
+        self.assertEqual(serial_order["address"], order.address)
+        self.assertEqual(serial_order["customer_id"], order.customer_id)
 
+    def test_deserialize_an_order(self):
+        """It should deserialize an Order"""
+        order = OrderFactory()
+        order.create()
+        serial_order = order.serialize()
+        new_order = Order()
+        new_order.deserialize(serial_order)
+        self.assertEqual(new_order.date, order.date)
+        self.assertEqual(new_order.status, order.status)
+        self.assertEqual(new_order.amount, order.amount)
+        self.assertEqual(new_order.address, order.address)
+        self.assertEqual(new_order.customer_id, order.customer_id)
 
     # Todo: Add your test cases here...
 
+    ######################################################################
+    #  T E S T   F A I L S
+    ######################################################################
+    @patch("service.models.db.session.commit")
+    def test_add_order_failed(self, exception_mock):
+        """It should not create an order on database error"""
+        exception_mock.side_effect = Exception()
+        order = OrderFactory()
+        self.assertRaises(DataValidationError, order.create)
+
+    @patch("service.models.db.session.commit")
+    def test_update_order_failed(self, exception_mock):
+        """It should not update an order on database error"""
+        exception_mock.side_effect = Exception()
+        order = OrderFactory()
+        self.assertRaises(DataValidationError, order.update)
+
+    @patch("service.models.db.session.commit")
+    def test_delete_order_failed(self, exception_mock):
+        """It should not delete an order on database error"""
+        exception_mock.side_effect = Exception()
+        order = OrderFactory()
+        self.assertRaises(DataValidationError, order.delete)
+
+    def test_deserialize_with_key_error(self):
+        """It should not Deserialize an order with a KeyError"""
+        order = Order()
+        self.assertRaises(DataValidationError, order.deserialize, {})
+
+    def test_deserialize_with_type_error(self):
+        """It should not Deserialize an order with a TypeError"""
+        order = Order()
+        self.assertRaises(DataValidationError, order.deserialize, [])

@@ -94,7 +94,7 @@ class Item(db.Model, PersistentBase):
             order_id (Integer): the id of the order you want to match
         """
         logger.info("Processing order_id query for %s ...", order_id)
-        return cls.query.filter(cls.order_id == order_id)
+        return cls.query.filter(cls.order_id == order_id).all()
 
     @classmethod
     def find_by_product_id(cls, order_id, product_id):

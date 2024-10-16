@@ -294,7 +294,7 @@ class OrderTestSuite(TestCase):
 
     def test_list_items(self):
         """It should Get a list of Items"""
-        # add two addresses to account
+        # add two addresses to order
         order = self._create_orders(1)[0]
         item_list = ItemFactory.create_batch(2)
 
@@ -346,9 +346,45 @@ class OrderTestSuite(TestCase):
         self.assertEqual(data["price"], str(item.price))
         self.assertEqual(data["quantity"], item.quantity)
 
-    # ----------------------------------------------------------
-    # TEST DELETE AN ITEM
-    # ----------------------------------------------------------
+    def test_update_item(self):
+        """It should Update an item on an order"""
+        # create a known item
+        order = self._create_orders(1)[0]
+        item = ItemFactory()
+        resp = self.client.post(
+            f"{BASE_URL}/{order.id}/items",
+            json=item.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        data = resp.get_json()
+        logging.debug(data)
+        item_id = data["product_id"]
+        data["price"] = 1
+        data["quantity"] = 1
+
+        # send the update back
+        resp = self.client.put(
+            f"{BASE_URL}/{order.id}/items/{item_id}",
+            json=data,
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        # retrieve it back
+        resp = self.client.get(
+            f"{BASE_URL}/{order.id}/items/{item_id}",
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        data = resp.get_json()
+        logging.debug(data)
+        self.assertEqual(data["product_id"], item_id)
+        self.assertEqual(data["order_id"], order.id)
+        self.assertEqual(int(data["price"]), 1)
+        self.assertEqual(int(data["quantity"]), 1)
 
     def test_delete_item(self):
         """It should Delete an Item"""
