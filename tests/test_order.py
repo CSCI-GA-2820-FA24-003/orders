@@ -111,10 +111,5 @@ class TestOrder(TestCase):
         self.assertEqual(orders[0].address, "abc")
         self.assertEqual(orders[0].customer_id, 123)
 
-
-
-
-
-
     # Todo: Add your test cases here...
 
