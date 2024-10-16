@@ -25,12 +25,10 @@ from unittest import TestCase
 from wsgi import app
 from service.common import status
 from service.models import db, Order
-from service.models.persistent_base import DataValidationError
 from .factories import OrderFactory
 from .factories import ItemFactory
 from datetime import datetime
 import unittest.mock as mock
-from unittest.mock import patch
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -207,8 +205,7 @@ class OrderTestSuite(TestCase):
     # ----------------------------------------------------------
     def test_get_all_orders(self):
         """It should retrieve all orders sorted by date"""
-        orders = self._create_orders(3)
-
+        self._create_orders(3)
         response = self.client.get("/orders")
         self.assertEqual(response.status_code, 200)
 

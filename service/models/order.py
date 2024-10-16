@@ -67,7 +67,6 @@ class Order(db.Model, PersistentBase):
             data (dict): A dictionary containing the resource data
         """
         try:
-            self.id = data["id"]
             self.date = date.fromisoformat(data["date"])
             self.status = data["status"]
             self.amount = data["amount"]
