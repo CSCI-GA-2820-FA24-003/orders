@@ -111,5 +111,24 @@ class TestOrder(TestCase):
         self.assertEqual(orders[0].address, "abc")
         self.assertEqual(orders[0].customer_id, 123)
 
+    def test_list_all_orders(self):
+        """It should List All Orders"""
+        # Create a couple of orders
+        order1 = OrderFactory()
+        order1.create()
+        order2 = OrderFactory()
+        order2.create()
+
+        # Retrieve all orders
+        orders = Order.all()
+        self.assertEqual(len(orders), 2)
+        self.assertIn(order1, orders)
+        self.assertIn(order2, orders)
+
+
+
+
+
+
     # Todo: Add your test cases here...
 

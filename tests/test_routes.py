@@ -28,6 +28,7 @@ from service.models import db, Order
 from .factories import OrderFactory
 from .factories import ItemFactory
 from datetime import datetime
+import unittest.mock as mock
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -183,6 +184,45 @@ class OrderTestSuite(TestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(len(response.data), 0)
 
+
+    # ----------------------------------------------------------
+    # TEST GET ALL ORDERS
+    # ----------------------------------------------------------
+    def test_get_all_orders(self):
+        """It should retrieve all orders sorted by date"""
+        orders = self._create_orders(3)
+
+        response = self.client.get("/orders")
+        self.assertEqual(response.status_code, 200)
+        
+        data = response.get_json()
+        self.assertEqual(len(data), 3)
+        dates = [order['date'] for order in data]
+        self.assertEqual(dates, sorted(dates, reverse=True))
+
+    def test_get_all_orders_empty(self):
+        """Return empty list with status code 200 when there is no order"""
+        response = self.client.get("/orders")
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+        self.assertEqual(data, [])
+
+
+    @mock.patch('service.models.Order.query')
+    def test_get_all_orders_failure(self, mock_query):
+        """It should return 500 when an exception occurs while retrieving orders"""
+        mock_query.order_by.side_effect = Exception("Database Error")
+        
+        response = self.client.get("/orders")
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        data = response.get_json()
+        self.assertIn("Failed to retrieve orders", data["error"])
+
+
+    ######################################################################
+    #  I T E M   T E S T   C A S E S
+    ######################################################################
     # ----------------------------------------------------------
     # TEST CREATE AN ITEM
     # ----------------------------------------------------------
@@ -231,12 +271,9 @@ class OrderTestSuite(TestCase):
         self.assertEqual(new_item["price"], str(test_item.price))
         self.assertEqual(new_item["quantity"], test_item.quantity)
 
-    ######################################################################
-    #  I T E M   T E S T   C A S E S
-    ######################################################################
     def test_list_items(self):
         """It should Get a list of Items"""
-        # add two addresses to account
+        # add two addresses to order
         order = self._create_orders(1)[0]
         item_list = ItemFactory.create_batch(2)
 
@@ -287,3 +324,72 @@ class OrderTestSuite(TestCase):
         self.assertEqual(data["product_id"], item.product_id)
         self.assertEqual(data["price"], str(item.price))
         self.assertEqual(data["quantity"], item.quantity)
+
+    def test_update_item(self):
+        """It should Update an item on an order"""
+        # create a known item
+        order = self._create_orders(1)[0]
+        item = ItemFactory()
+        resp = self.client.post(
+            f"{BASE_URL}/{order.id}/items",
+            json=item.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        data = resp.get_json()
+        logging.debug(data)
+        item_id = data["product_id"]
+        data["price"] = 1
+        data["quantity"] = 1
+
+        # send the update back
+        resp = self.client.put(
+            f"{BASE_URL}/{order.id}/items/{item_id}",
+            json=data,
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        # retrieve it back
+        resp = self.client.get(
+            f"{BASE_URL}/{order.id}/items/{item_id}",
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        data = resp.get_json()
+        logging.debug(data)
+        self.assertEqual(data["product_id"], item_id)
+        self.assertEqual(data["order_id"], order.id)
+        self.assertEqual(int(data["price"]), 1)
+        self.assertEqual(int(data["quantity"]), 1)
+
+    def test_delete_item(self):
+        """It should Delete an Item"""
+        order = self._create_orders(1)[0]
+        item = ItemFactory()
+        resp = self.client.post(
+            f"{BASE_URL}/{order.id}/items",
+            json=item.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        data = resp.get_json()
+        logging.debug(data)
+        item_id = data["product_id"]
+
+        # send delete request
+        resp = self.client.delete(
+            f"{BASE_URL}/{order.id}/items/{item_id}",
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+
+        # retrieve it back and make sure item is not there
+
+        resp = self.client.get(
+            f"{BASE_URL}/{order.id}/items/{item_id}",
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
