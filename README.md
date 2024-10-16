@@ -43,8 +43,8 @@ The **Order Management Service** is a RESTful API built with Flask, designed to 
 1. **Clone the Repository**
 
     ```bash
-    git clone https://github.com/your-repo/order-management-service.git
-    cd order-management-service
+    git clone https://github.com/CSCI-GA-2820-FA24-003/orders
+    cd orders
     ```
 
 2. **Open in VSCode**
@@ -82,60 +82,300 @@ The service will be accessible at `http://127.0.0.1:8080/`. You can edit the por
 
 ### API Endpoints
 
+Below is the updated **API Endpoints** section of the `README.md`, organized as per your specifications and including sample request and response examples based on your provided code.Z
+
+#### General Endpoint
+
+- **Root URL**
+
+    - **URL**: `/`
+    - **Method**: `GET`
+    - **Description**: Returns a JSON object with basic information about the service.
+    - **Response**:
+
+      ```json
+      {
+          "message": "Welcome to the Order Management Service API."
+      }
+      ```
+
+---
+
 #### Order Endpoints
-
-- **Create Order**
-
-    - **URL**: `/orders`
-    - **Method**: `POST`
-    - **Body**: JSON object containing order details.
-    - **Response**: Created order object with `201 Created` status.
 
 - **List All Orders**
 
     - **URL**: `/orders`
     - **Method**: `GET`
-    - **Response**: List of all orders sorted by date in descending order with `200 OK` status.
+    - **Description**: Retrieves all orders sorted by date in descending order.
+    - **Response**:
 
-- **Update Order**
+      ```json
+      [
+          {
+              "id": 2,
+              "customer_name": "John Doe",
+              "date_created": "2024-10-16T12:34:56",
+              "date_updated": "2024-10-16T12:34:56",
+              "status": "processing",
+              "items": [
+                  {
+                      "product_id": 101,
+                      "quantity": 2,
+                      "price": 19.99
+                  }
+              ]
+          },
+          {
+              "id": 1,
+              "customer_name": "Jane Smith",
+              "date_created": "2024-10-15T11:22:33",
+              "date_updated": "2024-10-15T11:22:33",
+              "status": "shipped",
+              "items": [
+                  {
+                      "product_id": 102,
+                      "quantity": 1,
+                      "price": 49.99
+                  }
+              ]
+          }
+      ]
+      ```
 
-    - **URL**: `/orders/<order_id>`
+    - **Status Code**: `200 OK`
+
+- **Create a New Order**
+
+    - **URL**: `/orders`
+    - **Method**: `POST`
+    - **Description**: Creates a new order with the provided details.
+    - **Request Body**:
+
+      ```json
+      {
+          "customer_name": "Alice Johnson",
+          "status": "processing",
+          "items": [
+              {
+                  "product_id": 103,
+                  "quantity": 1,
+                  "price": 29.99
+              },
+              {
+                  "product_id": 104,
+                  "quantity": 2,
+                  "price": 9.99
+              }
+          ]
+      }
+      ```
+
+    - **Response**:
+
+      ```json
+      {
+          "id": 3,
+          "customer_name": "Alice Johnson",
+          "date_created": "2024-10-16T13:00:00",
+          "date_updated": "2024-10-16T13:00:00",
+          "status": "processing",
+          "items": [
+              {
+                  "product_id": 103,
+                  "quantity": 1,
+                  "price": 29.99
+              },
+              {
+                  "product_id": 104,
+                  "quantity": 2,
+                  "price": 9.99
+              }
+          ]
+      }
+      ```
+
+    - **Status Code**: `201 Created`
+
+- **Read an Order**
+
+    - **URL**: `/orders/{order_id}`
+    - **Method**: `GET`
+    - **Description**: Retrieves details of a specific order by its ID.
+    - **Response**:
+
+      ```json
+      {
+          "id": 1,
+          "customer_name": "Jane Smith",
+          "date_created": "2024-10-15T11:22:33",
+          "date_updated": "2024-10-15T11:22:33",
+          "status": "shipped",
+          "items": [
+              {
+                  "product_id": 102,
+                  "quantity": 1,
+                  "price": 49.99
+              }
+          ]
+      }
+      ```
+
+    - **Status Code**: `200 OK`
+
+- **Update an Order**
+
+    - **URL**: `/orders/{order_id}`
     - **Method**: `PUT`
-    - **Body**: JSON object with updated order details.
-    - **Response**: Updated order object with `200 OK` status.
+    - **Description**: Updates an existing order with new information.
+    - **Request Body**:
 
-- **Delete Order**
+      ```json
+      {
+          "customer_name": "Jane Smith",
+          "status": "delivered"
+      }
+      ```
 
-    - **URL**: `/orders/<order_id>`
+    - **Response**:
+
+      ```json
+      {
+          "id": 1,
+          "customer_name": "Jane Smith",
+          "date_created": "2024-10-15T11:22:33",
+          "date_updated": "2024-10-16T14:00:00",
+          "status": "delivered",
+          "items": [
+              {
+                  "product_id": 102,
+                  "quantity": 1,
+                  "price": 49.99
+              }
+          ]
+      }
+      ```
+
+    - **Status Code**: `200 OK`
+
+- **Delete an Order**
+
+    - **URL**: `/orders/{order_id}`
     - **Method**: `DELETE`
-    - **Response**: Empty body with `204 No Content` status.
+    - **Description**: Deletes an order by its ID.
+    - **Response**:
+
+      - **Status Code**: `204 No Content`
+
+---
 
 #### Item Endpoints
 
-- **Create Item**
+- **List All Items in an Order**
 
-    - **URL**: `/orders/<order_id>/items`
+    - **URL**: `/orders/{order_id}/items`
+    - **Method**: `GET`
+    - **Description**: Retrieves all items associated with a specific order.
+    - **Response**:
+
+      ```json
+      [
+          {
+              "product_id": 103,
+              "quantity": 1,
+              "price": 29.99
+          },
+          {
+              "product_id": 104,
+              "quantity": 2,
+              "price": 9.99
+          }
+      ]
+      ```
+
+    - **Status Code**: `200 OK`
+
+- **Create a New Item in an Order**
+
+    - **URL**: `/orders/{order_id}/items`
     - **Method**: `POST`
-    - **Body**: JSON object containing item details.
-    - **Response**: Created item object with `201 Created` status.
+    - **Description**: Adds a new item to an existing order.
+    - **Request Body**:
 
-- **List Items for an Order**
+      ```json
+      {
+          "product_id": 105,
+          "quantity": 1,
+          "price": 19.99
+      }
+      ```
 
-    - **URL**: `/orders/<order_id>/items`
+    - **Response**:
+
+      ```json
+      {
+          "order_id": 3,
+          "product_id": 105,
+          "quantity": 1,
+          "price": 19.99
+      }
+      ```
+
+    - **Status Code**: `201 Created`
+
+- **Read an Item from an Order**
+
+    - **URL**: `/orders/{order_id}/items/{product_id}`
     - **Method**: `GET`
-    - **Response**: List of items for the specified order with `200 OK` status.
+    - **Description**: Retrieves details of a specific item within an order.
+    - **Response**:
 
-- **Retrieve Item**
+      ```json
+      {
+          "order_id": 3,
+          "product_id": 103,
+          "quantity": 1,
+          "price": 29.99
+      }
+      ```
 
-    - **URL**: `/orders/<order_id>/items/<product_id>`
-    - **Method**: `GET`
-    - **Response**: Item object with `200 OK` status.
+    - **Status Code**: `200 OK`
 
-- **Delete Item**
+- **Update an Item in an Order**
 
-    - **URL**: `/orders/<order_id>/items/<product_id>`
+    - **URL**: `/orders/{order_id}/items/{product_id}`
+    - **Method**: `PUT`
+    - **Description**: Updates details of a specific item within an order.
+    - **Request Body**:
+
+      ```json
+      {
+          "quantity": 2,
+          "price": 28.99
+      }
+      ```
+
+    - **Response**:
+
+      ```json
+      {
+          "order_id": 3,
+          "product_id": 103,
+          "quantity": 2,
+          "price": 28.99
+      }
+      ```
+
+    - **Status Code**: `200 OK`
+
+- **Delete an Item from an Order**
+
+    - **URL**: `/orders/{order_id}/items/{product_id}`
     - **Method**: `DELETE`
-    - **Response**: Empty body with `204 No Content` status.
+    - **Description**: Deletes a specific item from an order.
+    - **Response**:
+
+      - **Status Code**: `204 No Content`
 
 ### CLI Commands
 
