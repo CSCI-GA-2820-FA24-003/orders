@@ -24,7 +24,7 @@ import logging
 from unittest import TestCase
 from unittest.mock import patch
 from wsgi import app
-from service.models import Order, db
+from service.models import Order, Item, db
 from .factories import OrderFactory
 from .factories import ItemFactory
 from service.models.persistent_base import DataValidationError
@@ -137,6 +137,32 @@ class TestOrder(TestCase):
         orders = Order.all()
         self.assertEqual(len(orders), 1)
 
+    def test_delete_an_order(self):
+        """It should Delete an order from the database"""
+        orders = Order.all()
+        self.assertEqual(orders, [])
+        order = OrderFactory()
+        order.create()
+        # Assert that it was assigned an id and shows up in the database
+        self.assertIsNotNone(order.id)
+        orders = Order.all()
+        self.assertEqual(len(orders), 1)
+        order = orders[0]
+
+        # delete related items
+        new_item = ItemFactory(order=order)
+        new_item.create()
+        items = Item.find_by_order_id(order.id)
+        self.assertEqual(len(items), 1)
+        for item in items:
+            item.delete()
+        items = Item.find_by_order_id(order.id)
+        self.assertEqual(len(items), 0)
+        # delete order
+        order.delete()
+        orders = Order.all()
+        self.assertEqual(len(orders), 0)
+
     def test_serialize_an_order(self):
         """It should Serialize an order"""
         order = OrderFactory()
@@ -182,7 +208,7 @@ class TestOrder(TestCase):
 
     @patch("service.models.db.session.commit")
     def test_delete_order_failed(self, exception_mock):
-        """It should not delete an Occount on database error"""
+        """It should not delete an order on database error"""
         exception_mock.side_effect = Exception()
         order = OrderFactory()
         self.assertRaises(DataValidationError, order.delete)
