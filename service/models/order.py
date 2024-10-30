@@ -95,6 +95,62 @@ class Order(db.Model, PersistentBase):
         logger.info("Processing order update for %s ...", order_id)
         return cls.query.filter(cls.id == order_id).update({cls.amount: amount})
 
+    ######################################################################
+    #  Q U E R Y    F U N C T I O N S
+    ######################################################################
+    @classmethod
+    def find_by_date(cls, date_obj):
+        """Returns all orders with the given date
+
+        Args:
+            date (date object): the date of the orders you want to match
+        """
+        logger.info("Processing date query for %s ...", date_obj)
+        return cls.query.filter(cls.date == date_obj).all()
+
+    @classmethod
+    def find_by_address(cls, address):
+        """Returns all orders with the given address
+
+        Args:
+            address (string): the address of the orders you want to match
+        """
+        logger.info("Processing address query for %s ...", address)
+        return cls.query.filter(cls.address == address).all()
+
+    @classmethod
+    def find_by_customer_id(cls, customer_id):
+        """Returns all orders with the given customer_id
+
+        Args:
+            customer_id (int): the customer_id of the orders you want to match
+        """
+        logger.info("Processing customer_id query for %s ...", customer_id)
+        return cls.query.filter(cls.customer_id == customer_id).all()
+
+    @classmethod
+    def find_by_status(cls, customer_id, status):
+        """Returns all orders with the given customer_id and status
+
+        Args:
+            customer_id (int): the customer_id of the orders you want to match
+            status (int): the status of the orders you want to match
+        """
+        logger.info("Processing customer_id and status query for %s ...", customer_id)
+        return cls.query.filter(
+            cls.customer_id == customer_id, cls.status == status
+        ).all()
+
+    @classmethod
+    def find_by_amount(cls, amount):
+        """Returns all orders with the given amount
+
+        Args:
+            amount (Numeric): the amount of the orders you want to match
+        """
+        logger.info("Processing amount query for %s ...", amount)
+        return cls.query.filter(cls.amount == amount).all()
+
     # @classmethod
     # def find_by_name(cls, name):
     #     """Returns all Accounts with the given name

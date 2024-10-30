@@ -185,3 +185,26 @@ class TestItem(TestCase):
         """It should not Deserialize an item with a TypeError"""
         item = Item()
         self.assertRaises(DataValidationError, item.deserialize, [])
+
+    ######################################################################
+    #  T E S T      Q U E R Y      F U N C T I O N S
+    ######################################################################
+    def test_query_by_quantity(self):
+        """It should find an item with certain quantity in an order"""
+        orders = Order.all()
+        self.assertEqual(orders, [])
+
+        order = OrderFactory()
+        item = ItemFactory(order=order)
+        order.create()
+        # Assert that it was assigned an id and shows up in the database
+        self.assertIsNotNone(order.id)
+        orders = Order.all()
+        self.assertEqual(len(orders), 1)
+
+        # Fetch it back
+        order = Order.find(order.id)
+        found_item = Item.find_by_quantity(order.id, item.quantity)[0]
+        self.assertEqual(found_item.product_id, item.product_id)
+        self.assertEqual(found_item.price, item.price)
+        self.assertEqual(found_item.quantity, item.quantity)

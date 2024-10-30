@@ -86,6 +86,9 @@ class Item(db.Model, PersistentBase):
 
         return self
 
+    ######################################################################
+    #  Q U E R Y    F U N C T I O N S
+    ######################################################################
     @classmethod
     def find_by_order_id(cls, order_id):
         """Returns all Items with the given order id
@@ -110,3 +113,18 @@ class Item(db.Model, PersistentBase):
         return cls.query.filter(
             cls.order_id == order_id, cls.product_id == product_id
         ).first()
+
+    @classmethod
+    def find_by_quantity(cls, order_id, quantity):
+        """Returns items with the given order_id and quantity
+
+        Args:
+            order_id (Integer): the id of the order you want to match
+            quantity (Integer): the quantity of the product you want to match
+        """
+        logger.info(
+            "Processing order_id, quantity query for %s %s ...", order_id, quantity
+        )
+        return cls.query.filter(
+            cls.order_id == order_id, cls.quantity == quantity
+        ).all()
