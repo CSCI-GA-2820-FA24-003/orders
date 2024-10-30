@@ -448,18 +448,18 @@ class TestSadPaths(TestCase):
         response = self.client.post(BASE_URL, json=test_order.serialize())
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    # def test_get_items_not_available(self):
-    #     """It should not Get items if order does not exist"""
-    #     resp = self.client.get(
-    #         f"{BASE_URL}/{-100}/items/{-100}",
-    #         content_type="application/json",
-    #     )
-    #     self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+    def test_get_items_not_available(self):
+        """It should not Get items if order does not exist"""
+        resp = self.client.get(
+            f"{BASE_URL}/{-100}/items/{-100}",
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
-    # def test_update_items_not_available(self):
-    #     """It should not Update items if order does not exist"""
-    #     resp = self.client.put(
-    #         f"{BASE_URL}/{-100}/items/{-100}",
-    #         content_type="application/json",
-    #     )
-    #     self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+    def test_update_items_not_available(self):
+        """It should not Update items if order does not exist"""
+        resp = self.client.put(
+            f"{BASE_URL}/{-100}/items/{-100}",
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
