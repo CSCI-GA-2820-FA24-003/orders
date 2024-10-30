@@ -25,19 +25,18 @@ from unittest import TestCase
 from unittest.mock import patch
 from wsgi import app
 from service.models import Order, Item, db
-from .factories import OrderFactory
-from .factories import ItemFactory
 from service.models.persistent_base import DataValidationError
+from .factories import OrderFactory, ItemFactory
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
 )
-
-
 ######################################################################
 #  O R D E R   M O D E L   T E S T   C A S E S
 ######################################################################
 # pylint: disable=too-many-public-methods
+
+
 class TestOrder(TestCase):
     """Test Cases for Order Model"""
 
@@ -200,11 +199,10 @@ class TestOrder(TestCase):
         self.assertEqual(new_order.address, order.address)
         self.assertEqual(new_order.customer_id, order.customer_id)
 
-    # Todo: Add your test cases here...
-
     ######################################################################
     #  T E S T   F A I L S
     ######################################################################
+
     @patch("service.models.db.session.commit")
     def test_add_order_failed(self, exception_mock):
         """It should not create an order on database error"""

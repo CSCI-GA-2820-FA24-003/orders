@@ -94,8 +94,6 @@ def index():
 #  R E S T   A P I   E N D P O I N T S
 ######################################################################
 
-# Todo: Place your REST API code here ...
-
 
 ######################################################################
 # CREATE A NEW ORDER
@@ -221,31 +219,18 @@ def create_items(order_id):
     app.logger.info("Request to Create an Item for Order ID: %d", order_id)
     check_content_type("application/json")
 
+    # Get the order by order id
     item = Item()
     # Get the data from the request and deserialize it
     data = request.get_json()
-    app.logger.info("Processing: %s", data)
     item.deserialize(data)
 
     # Assign the order_id to the item
     item.order_id = order_id
-
-    # Save the new Item to the database
-    try:
-        item.create()
-    except Exception as e:
-        app.logger.error("Error saving item to the database: %s", str(e))
-        return (
-            jsonify({"error": "Database error"}),
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
-
-    app.logger.info(
-        "Item with new id [%s] saved for Order ID [%s]!", item.product_id, order_id
-    )
+    item.create()
 
     # Return the location of the new Item
-    location_url = url_for("create_items", order_id=order_id, _external=True)
+    location_url = url_for("get_item", order_id=order_id, product_id=item.product_id, _external=True)
     return (
         jsonify(item.serialize()),
         status.HTTP_201_CREATED,
@@ -309,26 +294,19 @@ def list_orders():
     Retrieve all orders sorted by date in descending order
     """
     app.logger.info("Request to Retrieve All Orders")
-    try:
-        orders = Order.query.order_by(Order.date.desc()).all()
-        orders_data = [order.serialize() for order in orders]
-        return jsonify(orders_data), status.HTTP_200_OK
-    except Exception as e:
-        app.logger.error("Failed to retrieve orders: %s", str(e))
-        return (
-            jsonify({"error": "Failed to retrieve orders"}),
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
-
+    orders = Order.query.order_by(Order.date.desc()).all()
+    orders_data = [order.serialize() for order in orders]
+    return jsonify(orders_data), status.HTTP_200_OK
 
 ######################################################################
 # UPDATE AN ITEM
 ######################################################################
+
+
 @app.route("/orders/<int:order_id>/items/<int:product_id>", methods=["PUT"])
 def update_items(order_id, product_id):
     """
     Update an Item
-
     This endpoint will update an Item based the body that is posted
     """
     app.logger.info("Request to update Item %s for Item id: %s", (product_id, order_id))
@@ -347,7 +325,6 @@ def update_items(order_id, product_id):
     item.order_id = order_id
     item.id = product_id
     item.update()
-
     return jsonify(item.serialize()), status.HTTP_200_OK
 
 
