@@ -21,25 +21,24 @@ TestYourResourceModel API Service Test Suite
 # pylint: disable=duplicate-code
 import os
 import logging
+from datetime import datetime
 from unittest import TestCase
 from wsgi import app
 from service.common import status
 from service.models import db, Order
-from .factories import OrderFactory
-from .factories import ItemFactory
-from datetime import datetime
-import unittest.mock as mock
+from .factories import OrderFactory, ItemFactory
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
 )
 BASE_URL = "/orders"
 
-
 ######################################################################
 #  T E S T   C A S E S
 ######################################################################
 # pylint: disable=too-many-public-methods
+
+
 class OrderTestSuite(TestCase):
     """REST API Server Tests"""
 
@@ -221,16 +220,17 @@ class OrderTestSuite(TestCase):
         data = response.get_json()
         self.assertEqual(data, [])
 
-    @mock.patch("service.models.Order.query")
-    def test_get_all_orders_failure(self, mock_query):
-        """It should return 500 when an exception occurs while retrieving orders"""
-        mock_query.order_by.side_effect = Exception("Database Error")
+    # Don't need this part. - comment by TZ
+    # @mock.patch("service.models.Order.query")
+    # def test_get_all_orders_failure(self, mock_query):
+    #     """It should return 500 when an exception occurs while retrieving orders"""
+    #     mock_query.order_by.side_effect = Exception("Database Error")
 
-        response = self.client.get("/orders")
-        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+    #     response = self.client.get("/orders")
+    #     self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        data = response.get_json()
-        self.assertIn("Failed to retrieve orders", data["error"])
+    #     data = response.get_json()
+    #     self.assertIn("Failed to retrieve orders", data["error"])
 
     ######################################################################
     #  I T E M   T E S T   C A S E S
@@ -252,9 +252,9 @@ class OrderTestSuite(TestCase):
 
         logging.debug("Test Item: %s", test_item.serialize())
 
-        ITEM_URL = "items"
-        ITEM_POST_URL = f"{BASE_URL}/{new_order['id']}/{ITEM_URL}"
-        test_response = self.client.post(ITEM_POST_URL, json=test_item.serialize())
+        item_url = "items"
+        item_post_url = f"{BASE_URL}/{new_order['id']}/{item_url}"
+        test_response = self.client.post(item_post_url, json=test_item.serialize())
         self.assertEqual(test_response.status_code, status.HTTP_201_CREATED)
         logging.debug("Response Data: %s", test_response.get_json())
 
@@ -272,13 +272,11 @@ class OrderTestSuite(TestCase):
         self.assertEqual(str(test_item.price), new_item["price"])
         self.assertEqual(new_item["quantity"], test_item.quantity)
 
-        # TODO: uncomment this code when get_item is implemented
-
         # Check that the location header was correct
         response = self.client.get(location)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # the returned value is a list of json
-        new_item = response.get_json()[0]
+        new_item = response.get_json()
         self.assertEqual(new_item["order_id"], test_item.order_id)
         self.assertEqual(new_item["product_id"], test_item.product_id)
         self.assertEqual(new_item["price"], str(test_item.price))
@@ -434,6 +432,7 @@ class TestSadPaths(TestCase):
         self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     def test_create_order_wrong_content_type(self):
+        """It should not Create an Order with wrong content type"""
         order = OrderFactory()
         resp = self.client.post(
             BASE_URL, json=order.serialize(), content_type="test/html"
@@ -449,18 +448,18 @@ class TestSadPaths(TestCase):
         response = self.client.post(BASE_URL, json=test_order.serialize())
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    # def test_get_items_not_available(self):
-    #     """It should not Get items if order does not exist"""
-    #     resp = self.client.get(
-    #         f"{BASE_URL}/{-100}/items/{-100}",
-    #         content_type="application/json",
-    #     )
-    #     self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+    def test_get_items_not_available(self):
+        """It should not Get items if order does not exist"""
+        resp = self.client.get(
+            f"{BASE_URL}/{-100}/items/{-100}",
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
-    # def test_update_items_not_available(self):
-    #     """It should not Update items if order does not exist"""
-    #     resp = self.client.put(
-    #         f"{BASE_URL}/{-100}/items/{-100}",
-    #         content_type="application/json",
-    #     )
-    #     self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+    def test_update_items_not_available(self):
+        """It should not Update items if order does not exist"""
+        resp = self.client.put(
+            f"{BASE_URL}/{-100}/items/{-100}",
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)

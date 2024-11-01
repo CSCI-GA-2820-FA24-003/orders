@@ -45,9 +45,15 @@ class Item(db.Model, PersistentBase):
     order = db.relationship("Order", backref="item", passive_deletes=True)
 
     def amount(self):
+        """
+        Return the total amount of price in the order.
+        """
         return self.price * self.quantity
 
     def __repr__(self):
+        """
+        Return the order object in string form
+        """
         return f"<Order {self.order_id} Product id=[{self.product_id}]>"
 
     def serialize(self):
