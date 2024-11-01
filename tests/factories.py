@@ -1,12 +1,11 @@
 """
 Test Factory to make fake objects for testing
 """
-
-import factory
-from service.models import Order, Item
-from factory.fuzzy import FuzzyDate, FuzzyInteger, FuzzyDecimal
 from datetime import date
 from decimal import Decimal
+import factory
+from factory.fuzzy import FuzzyDate, FuzzyInteger, FuzzyDecimal
+from service.models import Order, Item
 
 
 class OrderFactory(factory.Factory):
