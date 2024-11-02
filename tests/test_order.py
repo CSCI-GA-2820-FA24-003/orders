@@ -200,6 +200,74 @@ class TestOrder(TestCase):
         self.assertEqual(new_order.customer_id, order.customer_id)
 
     ######################################################################
+    #  T E S T      Q U E R Y      F U N C T I O N S
+    ######################################################################
+    def test_query_by_date(self):
+        """It should query an order by date"""
+        order = OrderFactory()
+        order.create()
+        # Read it back
+        found_order = Order.find_by_date(order.date)[0]
+        self.assertEqual(found_order.id, order.id)
+        self.assertEqual(found_order.date, order.date)
+        self.assertEqual(found_order.status, order.status)
+        self.assertEqual(found_order.amount, order.amount)
+        self.assertEqual(found_order.address, order.address)
+        self.assertEqual(found_order.customer_id, order.customer_id)
+
+    def test_query_by_address(self):
+        """It should query an order by address"""
+        order = OrderFactory()
+        order.create()
+        # Read it back
+        found_order = Order.find_by_address(order.address)[0]
+        self.assertEqual(found_order.id, order.id)
+        self.assertEqual(found_order.date, order.date)
+        self.assertEqual(found_order.status, order.status)
+        self.assertEqual(found_order.amount, order.amount)
+        self.assertEqual(found_order.address, order.address)
+        self.assertEqual(found_order.customer_id, order.customer_id)
+
+    def test_query_by_customer_id(self):
+        """It should query an order by customer_id"""
+        order = OrderFactory()
+        order.create()
+        # Read it back
+        found_order = Order.find_by_customer_id(order.customer_id)[0]
+        self.assertEqual(found_order.id, order.id)
+        self.assertEqual(found_order.date, order.date)
+        self.assertEqual(found_order.status, order.status)
+        self.assertEqual(found_order.amount, order.amount)
+        self.assertEqual(found_order.address, order.address)
+        self.assertEqual(found_order.customer_id, order.customer_id)
+
+    def test_query_by_status(self):
+        """It should query an order by customer_id and status"""
+        order = OrderFactory()
+        order.create()
+        # Read it back
+        found_order = Order.find_by_status(order.customer_id, order.status)[0]
+        self.assertEqual(found_order.id, order.id)
+        self.assertEqual(found_order.date, order.date)
+        self.assertEqual(found_order.status, order.status)
+        self.assertEqual(found_order.amount, order.amount)
+        self.assertEqual(found_order.address, order.address)
+        self.assertEqual(found_order.customer_id, order.customer_id)
+
+    def test_query_by_amount(self):
+        """It should query an order by amount"""
+        order = OrderFactory()
+        order.create()
+        # Read it back
+        found_order = Order.find_by_amount(order.amount)[0]
+        self.assertEqual(found_order.id, order.id)
+        self.assertEqual(found_order.date, order.date)
+        self.assertEqual(found_order.status, order.status)
+        self.assertEqual(found_order.amount, order.amount)
+        self.assertEqual(found_order.address, order.address)
+        self.assertEqual(found_order.customer_id, order.customer_id)
+
+    ######################################################################
     #  T E S T   F A I L S
     ######################################################################
 
