@@ -49,8 +49,8 @@ def index():
                     "url": url_for("list_orders", _external=True),
                 },
                 "get_order": {
-                   "method": "GET",
-                   "url": url_for("get_order", order_id=1, _external=True),
+                    "method": "GET",
+                    "url": url_for("get_order", order_id=1, _external=True),
                 },
                 "create_orders": {
                     "method": "POST",
@@ -74,15 +74,21 @@ def index():
                 },
                 "get_item": {
                     "method": "GET",
-                    "url": url_for("get_item", order_id=1, product_id=1, _external=True),
+                    "url": url_for(
+                        "get_item", order_id=1, product_id=1, _external=True
+                    ),
                 },
                 "update_items": {
                     "method": "PUT",
-                    "url": url_for("update_items", order_id=1, product_id=1, _external=True),
+                    "url": url_for(
+                        "update_items", order_id=1, product_id=1, _external=True
+                    ),
                 },
                 "delete_items": {
                     "method": "DELETE",
-                    "url": url_for("delete_items", order_id=1, product_id=1, _external=True),
+                    "url": url_for(
+                        "delete_items", order_id=1, product_id=1, _external=True
+                    ),
                 },
             },
         ),
@@ -230,7 +236,9 @@ def create_items(order_id):
     item.create()
 
     # Return the location of the new Item
-    location_url = url_for("get_item", order_id=order_id, product_id=item.product_id, _external=True)
+    location_url = url_for(
+        "get_item", order_id=order_id, product_id=item.product_id, _external=True
+    )
     return (
         jsonify(item.serialize()),
         status.HTTP_201_CREATED,
@@ -298,6 +306,7 @@ def list_orders():
     orders_data = [order.serialize() for order in orders]
     return jsonify(orders_data), status.HTTP_200_OK
 
+
 ######################################################################
 # UPDATE AN ITEM
 ######################################################################
@@ -346,6 +355,67 @@ def delete_items(order_id, product_id):
         item.delete()
 
     return "", status.HTTP_204_NO_CONTENT
+
+
+# ---------------------------------------------------------------------
+#                A C T I O N S
+# ---------------------------------------------------------------------
+######################################################################
+# CANCEL AN ORDER
+######################################################################
+@app.route("/orders/<int:order_id>/cancel", methods=["PUT"])
+def cancel_orders(order_id):
+    """Cancel an order and change its state to 0"""
+    app.logger.info("Request to cancel order with id: %d", order_id)
+
+    # Attempt to find the Order and abort if not found
+    order = Order.find(order_id)
+    if not order:
+        abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' was not found.")
+
+    # you can only cancel orders that are available
+    if order.status == 0:
+        abort(
+            status.HTTP_409_CONFLICT,
+            f"Order with id '{order_id}' is not available.",
+        )
+
+    # At this point you would execute code to cancel the order
+    # For the moment, we will just set the status to 0
+    order.status = 0
+    order.update()
+
+    app.logger.info("Order with ID: %d has been cancelled.", order_id)
+    return order.serialize(), status.HTTP_200_OK
+
+
+######################################################################
+# DELIVERED AN ORDER
+######################################################################
+@app.route("/orders/<int:order_id>/deliver", methods=["PUT"])
+def deliver_orders(order_id):
+    """deliver an order and change its state to 3"""
+    app.logger.info("Confirm delivered order with id: %d", order_id)
+
+    # Attempt to find the Order and abort if not found
+    order = Order.find(order_id)
+    if not order:
+        abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' was not found.")
+
+    # you can only deliver orders that are available
+    if order.status == 0:
+        abort(
+            status.HTTP_409_CONFLICT,
+            f"Order with id '{order_id}' is not available.",
+        )
+
+    # At this point you would execute code to confirm the delivery of order
+    # For the moment, we will just set the status to 3
+    order.status = 3
+    order.update()
+
+    app.logger.info("Order with ID: %d has been delivered.", order_id)
+    return order.serialize(), status.HTTP_200_OK
 
 
 ######################################################################

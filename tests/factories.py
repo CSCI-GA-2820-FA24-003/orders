@@ -1,6 +1,7 @@
 """
 Test Factory to make fake objects for testing
 """
+
 from datetime import date
 from decimal import Decimal
 import factory
@@ -18,7 +19,7 @@ class OrderFactory(factory.Factory):
 
     id = factory.Sequence(lambda n: n)
     date = FuzzyDate(date(2008, 1, 1))
-    status = FuzzyInteger(0, 2)
+    status = FuzzyInteger(0, 3)
     amount = Decimal(0.0)
     address = factory.Faker("address")
     customer_id = factory.Sequence(lambda n: n)
