@@ -36,7 +36,9 @@ class Order(db.Model, PersistentBase):
     # Table Schema
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     date = db.Column(db.Date(), nullable=False, default=date.today())
-    status = db.Column(db.Integer, nullable=False)
+    status = db.Column(
+        db.Integer, nullable=False
+    )  # 1: preparing, 2: delivering, 3: delivered, 0: cancelled
     amount = db.Column(db.Numeric, nullable=False)
     address = db.Column(db.String(64), nullable=False)
     customer_id = db.Column(db.Integer, nullable=False)
