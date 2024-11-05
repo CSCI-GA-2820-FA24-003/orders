@@ -134,3 +134,14 @@ class Item(db.Model, PersistentBase):
         return cls.query.filter(
             cls.order_id == order_id, cls.quantity == quantity
         ).all()
+
+    @classmethod
+    def find_by_price(cls, order_id, price):
+        """Returns items with the given order_id and price
+
+        Args:
+            order_id (Integer): the id of the order you want to match
+            price (float): the price of the product you want to match
+        """
+        logger.info("Processing order_id, price query for %s %s ...", order_id, price)
+        return cls.query.filter(cls.order_id == order_id, cls.price == price).all()

@@ -49,8 +49,8 @@ def index():
                     "url": url_for("list_orders", _external=True),
                 },
                 "get_order": {
-                   "method": "GET",
-                   "url": url_for("get_order", order_id=1, _external=True),
+                    "method": "GET",
+                    "url": url_for("get_order", order_id=1, _external=True),
                 },
                 "create_orders": {
                     "method": "POST",
@@ -74,15 +74,21 @@ def index():
                 },
                 "get_item": {
                     "method": "GET",
-                    "url": url_for("get_item", order_id=1, product_id=1, _external=True),
+                    "url": url_for(
+                        "get_item", order_id=1, product_id=1, _external=True
+                    ),
                 },
                 "update_items": {
                     "method": "PUT",
-                    "url": url_for("update_items", order_id=1, product_id=1, _external=True),
+                    "url": url_for(
+                        "update_items", order_id=1, product_id=1, _external=True
+                    ),
                 },
                 "delete_items": {
                     "method": "DELETE",
-                    "url": url_for("delete_items", order_id=1, product_id=1, _external=True),
+                    "url": url_for(
+                        "delete_items", order_id=1, product_id=1, _external=True
+                    ),
                 },
             },
         ),
@@ -230,7 +236,9 @@ def create_items(order_id):
     item.create()
 
     # Return the location of the new Item
-    location_url = url_for("get_item", order_id=order_id, product_id=item.product_id, _external=True)
+    location_url = url_for(
+        "get_item", order_id=order_id, product_id=item.product_id, _external=True
+    )
     return (
         jsonify(item.serialize()),
         status.HTTP_201_CREATED,
@@ -254,9 +262,23 @@ def list_items(order_id):
             f"Order with id '{order_id}' could not be found.",
         )
 
-    # Get the items for the order
-    results = [item.serialize() for item in Item.find_by_order_id(order_id)]
+    items = Item.find_by_order_id(order_id)
+    # parse any arguments from the query string
+    price = request.args.get("price")
+    quantity = request.args.get("quantity")
 
+    if price:
+        app.logger.info("Find by price: %s", price)
+        price = float(price)
+        items = Item.find_by_price(order_id, price)
+    elif quantity:
+        app.logger.info("Find by quantity: %s", quantity)
+        quantity = int(quantity)
+        items = Item.find_by_quantity(order_id, quantity)
+
+    # Get the items for the order
+    results = [item.serialize() for item in items]
+    app.logger.info("Returning %d items", len(results))
     return jsonify(results), status.HTTP_200_OK
 
 
@@ -297,6 +319,7 @@ def list_orders():
     orders = Order.query.order_by(Order.date.desc()).all()
     orders_data = [order.serialize() for order in orders]
     return jsonify(orders_data), status.HTTP_200_OK
+
 
 ######################################################################
 # UPDATE AN ITEM

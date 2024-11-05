@@ -23,6 +23,7 @@ import os
 import logging
 from datetime import datetime
 from unittest import TestCase
+from urllib.parse import quote_plus
 from wsgi import app
 from service.common import status
 from service.models import db, Order
@@ -85,6 +86,23 @@ class OrderTestSuite(TestCase):
             test_order.id = new_order["id"]
             orders.append(test_order)
         return orders
+
+    def _create_items(self, order, count: int = 1) -> list:
+        """Factory method to create items in bulk"""
+        items = []
+        item_url = "items"
+        item_post_url = f"{BASE_URL}/{order.id}/{item_url}"
+
+        for _ in range(count):
+            test_item = ItemFactory(order=order)
+            response = self.client.post(item_post_url, json=test_item.serialize())
+            self.assertEqual(
+                response.status_code,
+                status.HTTP_201_CREATED,
+                "Could not create test order",
+            )
+            items.append(test_item)
+        return items
 
     ######################################################################
     #  P L A C E   T E S T   C A S E S   H E R E
@@ -404,6 +422,61 @@ class OrderTestSuite(TestCase):
             content_type="application/json",
         )
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    # ----------------------------------------------------------
+    # TEST QUERY
+    # ----------------------------------------------------------
+    def test_query_items_by_price(self):
+        """It should Query Items by Price"""
+        # create an order
+        orders = Order.all()
+        self.assertEqual(orders, [])
+        order = OrderFactory()
+        order.create()
+        self.assertIsNotNone(order.id)
+        orders = Order.all()
+        self.assertEqual(len(orders), 1)
+
+        # create some items
+        items = self._create_items(order, 5)
+        self.assertEqual(len(items), 5)
+        test_price = items[0].price
+        price_count = len([item for item in items if item.price == test_price])
+        response = self.client.get(
+            f"{BASE_URL}/{order.id}/items", query_string={"price": test_price}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), price_count)
+        # check the data just to be sure
+        for item in data:
+            self.assertEqual(item["price"], str(test_price))
+
+    def test_query_items_by_quantity(self):
+        """It should Query Items by Quantity"""
+        # create an order
+        orders = Order.all()
+        self.assertEqual(orders, [])
+        order = OrderFactory()
+        order.create()
+        self.assertIsNotNone(order.id)
+        orders = Order.all()
+        self.assertEqual(len(orders), 1)
+
+        # create some items
+        items = self._create_items(order, 5)
+        self.assertEqual(len(items), 5)
+        test_quantity = items[0].quantity
+        quantity_count = len([item for item in items if item.quantity == test_quantity])
+        response = self.client.get(
+            f"{BASE_URL}/{order.id}/items", query_string={"quantity": test_quantity}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), quantity_count)
+        # check the data just to be sure
+        for item in data:
+            self.assertEqual(item["quantity"], test_quantity)
 
 
 ######################################################################
