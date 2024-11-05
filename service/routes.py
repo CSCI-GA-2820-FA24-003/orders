@@ -262,9 +262,23 @@ def list_items(order_id):
             f"Order with id '{order_id}' could not be found.",
         )
 
-    # Get the items for the order
-    results = [item.serialize() for item in Item.find_by_order_id(order_id)]
+    items = Item.find_by_order_id(order_id)
+    # parse any arguments from the query string
+    price = request.args.get("price")
+    quantity = request.args.get("quantity")
 
+    if price:
+        app.logger.info("Find by price: %s", price)
+        price = float(price)
+        items = Item.find_by_price(order_id, price)
+    elif quantity:
+        app.logger.info("Find by quantity: %s", quantity)
+        quantity = int(quantity)
+        items = Item.find_by_quantity(order_id, quantity)
+
+    # Get the items for the order
+    results = [item.serialize() for item in items]
+    app.logger.info("Returning %d items", len(results))
     return jsonify(results), status.HTTP_200_OK
 
 

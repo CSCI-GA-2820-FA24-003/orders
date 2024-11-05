@@ -208,3 +208,23 @@ class TestItem(TestCase):
         self.assertEqual(found_item.product_id, item.product_id)
         self.assertEqual(found_item.price, item.price)
         self.assertEqual(found_item.quantity, item.quantity)
+
+    def test_query_by_price(self):
+        """It should find an item with certain price in an order"""
+        orders = Order.all()
+        self.assertEqual(orders, [])
+
+        order = OrderFactory()
+        item = ItemFactory(order=order)
+        order.create()
+        # Assert that it was assigned an id and shows up in the database
+        self.assertIsNotNone(order.id)
+        orders = Order.all()
+        self.assertEqual(len(orders), 1)
+
+        # Fetch it back
+        order = Order.find(order.id)
+        found_item = Item.find_by_price(order.id, item.price)[0]
+        self.assertEqual(found_item.product_id, item.product_id)
+        self.assertEqual(found_item.price, item.price)
+        self.assertEqual(found_item.quantity, item.quantity)
