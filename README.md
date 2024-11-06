@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/Language-Python-blue.svg)](https://python.org/)
 [![Docker](https://img.shields.io/badge/Docker-Enabled-blue.svg)](https://www.docker.com/)
-![Coverage](./coverage.svg)
+![Coverage]([![codecov](https://codecov.io/gh/CSCI-GA-2820-FA24-003/orders/graph/badge.svg?token=EGJLN1OPQV)](https://codecov.io/gh/CSCI-GA-2820-FA24-003/orders))
 ## Overview
 
 The **Order Management Service** is a RESTful API built with Flask, designed to handle orders and their associated items. It provides endpoints to create, read, update, and delete orders and items, making it suitable for e-commerce platforms, inventory systems, and other applications requiring order management functionality.
