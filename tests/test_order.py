@@ -246,7 +246,7 @@ class TestOrder(TestCase):
         order = OrderFactory()
         order.create()
         # Read it back
-        found_order = Order.find_by_status(order.customer_id, order.status)[0]
+        found_order = Order.find_by_status(order.status)[0]
         self.assertEqual(found_order.id, order.id)
         self.assertEqual(found_order.date, order.date)
         self.assertEqual(found_order.status, order.status)

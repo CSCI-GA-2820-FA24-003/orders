@@ -21,6 +21,7 @@ This service implements a REST API that allows you to Create, Read, Update
 and Delete YourResourceModel
 """
 
+from datetime import datetime
 from flask import jsonify, request, url_for, abort
 from flask import current_app as app  # Import Flask application
 from service.models import Order
@@ -171,8 +172,8 @@ def update_orders(order_id):
 
     # Attempt to find the Order and abort if not found
     order = Order.find(order_id)
-    if not order:
-        abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' was not found.")
+    # if not order:
+    #     abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' was not found.")
 
     # Update the Order with the new data
     data = request.get_json()
@@ -255,12 +256,12 @@ def list_items(order_id):
     app.logger.info("Request for all Items for Order with id: %s", order_id)
 
     # See if the order exists and abort if it doesn't
-    order = Order.find(order_id)
-    if not order:
-        abort(
-            status.HTTP_404_NOT_FOUND,
-            f"Order with id '{order_id}' could not be found.",
-        )
+    # order = Order.find(order_id)
+    # if not order:
+    #     abort(
+    #         status.HTTP_404_NOT_FOUND,
+    #         f"Order with id '{order_id}' could not be found.",
+    #     )
 
     items = Item.find_by_order_id(order_id)
     # parse any arguments from the query string
@@ -313,9 +314,40 @@ def get_item(order_id, product_id):
 @app.route("/orders", methods=["GET"])
 def list_orders():
     """
-    Retrieve all orders sorted by date in descending order
+    Retrieve all orders
     """
     app.logger.info("Request to Retrieve All Orders")
+    orders = []
+
+    # Process the query string for order if any
+    date = request.args.get("date")
+    status_obj = request.args.get("status")
+    address = request.args.get("address")
+    customer_id = request.args.get("customer_id")
+
+    if date:
+        app.logger.info("Find by date: %s", date)
+        date_obj = datetime.strptime(date, "%Y-%m-%d").date()
+        orders = Order.find_by_date(date_obj)
+    else:
+        orders = Order.all()
+
+    if status_obj:
+        status_obj = int(status_obj)
+        orders = Order.find_by_status(status_obj)
+    else:
+        orders = Order.all()
+
+    if address:
+        orders = Order.find_by_address(address)
+    else:
+        orders = Order.all()
+
+    if customer_id:
+        customer_id = int(customer_id)
+        orders = Order.find_by_customer_id(customer_id)
+    else:
+        orders = Order.all()
     orders = Order.query.order_by(Order.date.desc()).all()
     orders_data = [order.serialize() for order in orders]
     return jsonify(orders_data), status.HTTP_200_OK

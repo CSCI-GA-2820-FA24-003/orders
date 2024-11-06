@@ -256,7 +256,7 @@ class OrderTestSuite(TestCase):
 
     def test_cancel_not_available(self):
         """It should not Cancel a Order that is not available"""
-        orders = self._create_orders(10)
+        orders = self._create_orders(100)
         unavailable_orders = [order for order in orders if order.status == 0]
         order = unavailable_orders[0]
         response = self.client.put(f"{BASE_URL}/{order.id}/cancel")
@@ -277,7 +277,7 @@ class OrderTestSuite(TestCase):
 
     def test_deliver_not_available(self):
         """It should not Deliver a Order that is not available"""
-        orders = self._create_orders(10)
+        orders = self._create_orders(100)
         unavailable_orders = [order for order in orders if order.status == 0]
         order = unavailable_orders[0]
         response = self.client.put(f"{BASE_URL}/{order.id}/deliver")
@@ -471,6 +471,46 @@ class OrderTestSuite(TestCase):
     # ----------------------------------------------------------
     # TEST QUERY
     # ----------------------------------------------------------
+    def test_query_orders_by_date(self):
+        """It should query orders by date"""
+        orders = self._create_orders(3)
+        orders = Order.query.order_by(Order.date.desc()).all()
+        resp = self.client.get(BASE_URL, query_string=f"date={orders[0].date}")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        date = datetime.strptime(data[0]["date"], "%Y-%m-%d").date()
+        self.assertEqual(date, orders[0].date)
+
+    def test_query_orders_by_status(self):
+        """It should query orders by status"""
+        orders = self._create_orders(3)
+        orders = Order.query.order_by(Order.date.desc()).all()
+        resp = self.client.get(BASE_URL, query_string=f"status={orders[0].status}")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        status_obj = int(data[0]["status"])
+        self.assertEqual(status_obj, orders[0].status)
+
+    def test_query_orders_by_customer_id(self):
+        """It should query orders by customer_id"""
+        orders = self._create_orders(3)
+        orders = Order.query.order_by(Order.date.desc()).all()
+        resp = self.client.get(BASE_URL, query_string=f"customer_id={orders[0].customer_id}")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        customer_id = int(data[0]["customer_id"])
+        self.assertEqual(customer_id, orders[0].customer_id)
+
+    def test_query_orders_by_address(self):
+        """It should query orders by address"""
+        orders = self._create_orders(3)
+        orders = Order.query.order_by(Order.date.desc()).all()
+        resp = self.client.get(BASE_URL, query_string=f"address={orders[0].address}")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        address = data[0]["address"]
+        self.assertEqual(address, orders[0].address)
+
     def test_query_items_by_price(self):
         """It should Query Items by Price"""
         # create an order

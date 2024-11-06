@@ -131,17 +131,14 @@ class Order(db.Model, PersistentBase):
         return cls.query.filter(cls.customer_id == customer_id).all()
 
     @classmethod
-    def find_by_status(cls, customer_id, status):
-        """Returns all orders with the given customer_id and status
+    def find_by_status(cls, status):
+        """Returns all orders with the given status
 
         Args:
-            customer_id (int): the customer_id of the orders you want to match
             status (int): the status of the orders you want to match
         """
-        logger.info("Processing customer_id and status query for %s ...", customer_id)
-        return cls.query.filter(
-            cls.customer_id == customer_id, cls.status == status
-        ).all()
+        logger.info("Processing  status query")
+        return cls.query.filter(cls.status == status).all()
 
     @classmethod
     def find_by_amount(cls, amount):
