@@ -21,12 +21,12 @@ This service implements a REST API that allows you to Create, Read, Update
 and Delete YourResourceModel
 """
 
+from datetime import datetime
 from flask import jsonify, request, url_for, abort
 from flask import current_app as app  # Import Flask application
 from service.models import Order
 from service.models import Item
 from service.common import status  # HTTP Status Codes
-from datetime import datetime
 
 
 ######################################################################
@@ -256,7 +256,7 @@ def list_items(order_id):
     app.logger.info("Request for all Items for Order with id: %s", order_id)
 
     # See if the order exists and abort if it doesn't
-    order = Order.find(order_id)
+    # order = Order.find(order_id)
     # if not order:
     #     abort(
     #         status.HTTP_404_NOT_FOUND,
@@ -334,8 +334,8 @@ def list_orders():
 
     if status_obj:
         status_obj = int(status_obj)
-        orders = Order.find_by_status( status_obj)
-    else: 
+        orders = Order.find_by_status(status_obj)
+    else:
         orders = Order.all()
 
     if address:

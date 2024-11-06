@@ -23,7 +23,7 @@ import os
 import logging
 from datetime import datetime
 from unittest import TestCase
-from urllib.parse import quote_plus
+# from urllib.parse import quote_plus
 from wsgi import app
 from service.common import status
 from service.models import db, Order
@@ -481,8 +481,7 @@ class OrderTestSuite(TestCase):
         date = datetime.strptime(data[0]["date"], "%Y-%m-%d").date()
         self.assertEqual(date, orders[0].date)
 
-    #  fix this test if necessary
-    def test_query_orders_by_status(self): 
+    def test_query_orders_by_status(self):
         """It should query orders by status"""
         orders = self._create_orders(3)
         orders = Order.query.order_by(Order.date.desc()).all()
@@ -511,7 +510,7 @@ class OrderTestSuite(TestCase):
         data = resp.get_json()
         address = data[0]["address"]
         self.assertEqual(address, orders[0].address)
-        
+
     def test_query_items_by_price(self):
         """It should Query Items by Price"""
         # create an order
