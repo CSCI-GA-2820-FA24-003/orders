@@ -99,6 +99,7 @@ def internal_server_error(error):
         status.HTTP_500_INTERNAL_SERVER_ERROR,
     )
 
+
 # Flask will catch all other exceptions after above handlers
 @app.errorhandler(Exception)
 def handle_exception(error):
