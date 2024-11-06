@@ -98,3 +98,14 @@ def internal_server_error(error):
         ),
         status.HTTP_500_INTERNAL_SERVER_ERROR,
     )
+
+# Flask will catch all other exceptions after above handlers
+@app.errorhandler(Exception)
+def handle_exception(error):
+    """Handles all uncaught exceptions and returns JSON response"""
+    response = {
+        "error": "An unexpected error occurred",
+        "message": str(error)
+    }
+    app.logger.error("Unhandled Exception: %s", str(error))
+    return jsonify(response), status.HTTP_500_INTERNAL_SERVER_ERROR
