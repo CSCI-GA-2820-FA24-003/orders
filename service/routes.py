@@ -333,10 +333,8 @@ def list_orders():
         orders = Order.all()
 
     if status_obj:
-        if customer_id:
-            status_obj = int(status_obj)
-            customer_id_obj = int(customer_id)
-            orders = Order.find_by_status(customer_id_obj, status_obj)
+        status_obj = int(status_obj)
+        orders = Order.find_by_status( status_obj)
     else: 
         orders = Order.all()
 

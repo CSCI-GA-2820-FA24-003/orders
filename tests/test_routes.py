@@ -482,17 +482,15 @@ class OrderTestSuite(TestCase):
         self.assertEqual(date, orders[0].date)
 
     #  fix this test if necessary
-    # def test_query_orders_by_status(self): 
-    #     """It should query orders by status"""
-    #     orders = self._create_orders(3)
-    #     orders = Order.query.order_by(Order.date.desc()).all()
-    #     need add parameter customer_id here
-    #     resp = self.client.get(BASE_URL, query_string=f"status={orders[0].status}")
-    #     self.assertEqual(resp.status_code, status.HTTP_200_OK)
-    #     data = resp.get_json()
-    #     customer_id = int(data[0]["customer_id"])
-    #     status = int(data[0]["status"])
-    #     self.assertEqual(status, orders[0].status)
+    def test_query_orders_by_status(self): 
+        """It should query orders by status"""
+        orders = self._create_orders(3)
+        orders = Order.query.order_by(Order.date.desc()).all()
+        resp = self.client.get(BASE_URL, query_string=f"status={orders[0].status}")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        status_obj = int(data[0]["status"])
+        self.assertEqual(status_obj, orders[0].status)
 
     def test_query_orders_by_customer_id(self):
         """It should query orders by customer_id"""
