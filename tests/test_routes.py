@@ -23,7 +23,7 @@ import os
 import logging
 from datetime import datetime
 from unittest import TestCase
-from urllib.parse import quote_plus
+# from urllib.parse import quote_plus
 from wsgi import app
 from service.common import status
 from service.models import db, Order
