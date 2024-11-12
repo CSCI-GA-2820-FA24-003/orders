@@ -172,8 +172,8 @@ def update_orders(order_id):
 
     # Attempt to find the Order and abort if not found
     order = Order.find(order_id)
-    # if not order:
-    #     abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' was not found.")
+    if not order:
+        abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' was not found.")
 
     # Update the Order with the new data
     data = request.get_json()
@@ -226,14 +226,18 @@ def create_items(order_id):
     app.logger.info("Request to Create an Item for Order ID: %d", order_id)
     check_content_type("application/json")
 
+    order = Order.find(order_id)
+    if not order:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Order with id '{order_id}' could not be found.",
+        )
+
     # Get the order by order id
     item = Item()
     # Get the data from the request and deserialize it
     data = request.get_json()
     item.deserialize(data)
-
-    # Assign the order_id to the item
-    item.order_id = order_id
     item.create()
 
     # Return the location of the new Item

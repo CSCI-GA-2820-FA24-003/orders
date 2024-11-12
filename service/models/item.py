@@ -42,7 +42,7 @@ class Item(db.Model, PersistentBase):
     )
     price = db.Column(db.Numeric, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
-    order = db.relationship("Order", backref="item", passive_deletes=True)
+    order = db.relationship("Order", backref="items", passive_deletes=True)
 
     def amount(self):
         """
@@ -91,6 +91,59 @@ class Item(db.Model, PersistentBase):
             ) from error
 
         return self
+
+    def create(self) -> None:
+        """
+        Creates an Item to the database
+        """
+        logger.info("Creating %s", self)
+
+        try:
+            db.session.add(self)
+            db.session.commit()
+            # db.session.flush()
+
+            self.order.amount += self.price * self.quantity
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            logger.error("Error creating record: %s", self)
+            raise DataValidationError(e) from e
+
+    def update(self) -> None:
+        """
+        Updates an Item to the database
+        """
+        logger.info("Updating %s", self)
+        if not self.order_id:
+            raise DataValidationError("Update called with empty ID field")
+        try:
+
+            if self.order:
+                self.order.amount = sum(
+                    item.price * item.quantity for item in self.order.items
+                )
+
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            logger.error("Error updating record: %s", self)
+            raise DataValidationError(e) from e
+
+    def delete(self) -> None:
+        """Removes an Item from the data store"""
+        logger.info("Deleting %s", self)
+        try:
+            if self.order:
+                self.order.amount -= self.price * self.quantity
+                db.session.add(self.order)
+
+            db.session.delete(self)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            logger.error("Error deleting record: %s", self)
+            raise DataValidationError(e) from e
 
     ######################################################################
     #  Q U E R Y    F U N C T I O N S
