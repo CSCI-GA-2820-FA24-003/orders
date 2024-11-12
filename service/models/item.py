@@ -106,7 +106,7 @@ class Item(db.Model, PersistentBase):
             db.session.commit()
         except Exception as e:
             db.session.rollback()
-            logger.error("Error creating record: %s", self)
+            logger.error("Error creating item: %s", self)
             raise DataValidationError(e) from e
 
     def update(self) -> None:
@@ -115,7 +115,7 @@ class Item(db.Model, PersistentBase):
         """
         logger.info("Updating %s", self)
         if not self.order_id:
-            raise DataValidationError("Update called with empty ID field")
+            raise DataValidationError("Update called with item of empty order id")
         try:
             self.order.amount = sum(
                 item.price * item.quantity for item in self.order.items
@@ -124,7 +124,7 @@ class Item(db.Model, PersistentBase):
             db.session.commit()
         except Exception as e:
             db.session.rollback()
-            logger.error("Error updating record: %s", self)
+            logger.error("Error updating item: %s", self)
             raise DataValidationError(e) from e
 
     def delete(self) -> None:
@@ -138,7 +138,7 @@ class Item(db.Model, PersistentBase):
             db.session.commit()
         except Exception as e:
             db.session.rollback()
-            logger.error("Error deleting record: %s", self)
+            logger.error("Error deleting item: %s", self)
             raise DataValidationError(e) from e
 
     ######################################################################
