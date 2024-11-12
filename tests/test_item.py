@@ -270,3 +270,9 @@ class TestItem(TestCase):
         exception_mock.side_effect = Exception()
         item = ItemFactory()
         self.assertRaises(DataValidationError, item.delete)
+
+    def test_update_item_without_order_id(self):
+        """It should not update an item without order id"""
+        item = ItemFactory()
+        item.order_id = None
+        self.assertRaises(DataValidationError, item.update)

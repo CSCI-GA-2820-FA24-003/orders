@@ -650,3 +650,19 @@ class TestSadPaths(TestCase):
             content_type="application/json",
         )
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_orders_not_available(self):
+        """It should not Update an order if order does not exist"""
+        resp = self.client.put(
+            f"{BASE_URL}/{100}",
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_create_items_not_available(self):
+        """It should not Create items if order does not exist"""
+        resp = self.client.post(
+            f"{BASE_URL}/{100}/items",
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
