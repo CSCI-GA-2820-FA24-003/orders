@@ -101,7 +101,6 @@ class Item(db.Model, PersistentBase):
         try:
             db.session.add(self)
             db.session.commit()
-            # db.session.flush()
 
             self.order.amount += self.price * self.quantity
             db.session.commit()
@@ -118,11 +117,9 @@ class Item(db.Model, PersistentBase):
         if not self.order_id:
             raise DataValidationError("Update called with empty ID field")
         try:
-
-            if self.order:
-                self.order.amount = sum(
-                    item.price * item.quantity for item in self.order.items
-                )
+            self.order.amount = sum(
+                item.price * item.quantity for item in self.order.items
+            )
 
             db.session.commit()
         except Exception as e:
@@ -134,9 +131,8 @@ class Item(db.Model, PersistentBase):
         """Removes an Item from the data store"""
         logger.info("Deleting %s", self)
         try:
-            if self.order:
-                self.order.amount -= self.price * self.quantity
-                db.session.add(self.order)
+            self.order.amount -= self.price * self.quantity
+            db.session.add(self.order)
 
             db.session.delete(self)
             db.session.commit()
