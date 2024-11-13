@@ -23,6 +23,7 @@ import os
 import logging
 from datetime import datetime
 from unittest import TestCase
+
 # from urllib.parse import quote_plus
 from wsgi import app
 from service.common import status
@@ -306,29 +307,29 @@ class OrderTestSuite(TestCase):
         """It should Create a new item"""
 
         # Create an order to create an item
-        test_order = OrderFactory()
-        response = self.client.post(BASE_URL, json=test_order.serialize())
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        new_order = response.get_json()
+        order = self._create_orders(1)[0]
 
-        test_item = test_item = ItemFactory(order_id=new_order["id"])
-
+        # Create an Item
+        test_item = ItemFactory(order=order)
         logging.debug("Test Item: %s", test_item.serialize())
+        self.assertEqual(order.amount, 0)
 
-        item_url = "items"
-        item_post_url = f"{BASE_URL}/{new_order['id']}/{item_url}"
-        test_response = self.client.post(item_post_url, json=test_item.serialize())
-        self.assertEqual(test_response.status_code, status.HTTP_201_CREATED)
-        logging.debug("Response Data: %s", test_response.get_json())
+        resp = self.client.post(
+            f"{BASE_URL}/{order.id}/items",
+            json=test_item.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        logging.debug("Response Data: %s", resp.get_json())
 
         # Make sure location header is set
-        location = test_response.headers.get("Location", None)
+        location = resp.headers.get("Location", None)
         self.assertIsNotNone(location)
 
         # Check the data is correct
-        new_item = test_response.get_json()
+        new_item = resp.get_json()
 
-        self.assertEqual(new_item["order_id"], test_item.order_id)
+        self.assertEqual(new_item["order_id"], order.id)
         self.assertEqual(new_item["product_id"], test_item.product_id)
 
         # price need to be in the same type
@@ -336,7 +337,7 @@ class OrderTestSuite(TestCase):
         self.assertEqual(new_item["quantity"], test_item.quantity)
 
         # Check that the location header was correct
-        response = self.client.get(location)
+        response = self.client.get(location, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # the returned value is a list of json
         new_item = response.get_json()
@@ -345,12 +346,22 @@ class OrderTestSuite(TestCase):
         self.assertEqual(new_item["price"], str(test_item.price))
         self.assertEqual(new_item["quantity"], test_item.quantity)
 
+        # check the amount of the order changed accordingly
+        resp = self.client.get(
+            f"{BASE_URL}/{order.id}", content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(data["amount"], float(test_item.amount()))
+
     def test_list_items(self):
         """It should Get a list of Items"""
         # add two addresses to order
         order = self._create_orders(1)[0]
+        order.create()
         item_list = ItemFactory.create_batch(2)
-
+        item_list[0].order = order
+        item_list[1].order = order
         # Create item 1
         resp = self.client.post(
             f"{BASE_URL}/{order.id}/items", json=item_list[0].serialize()
@@ -374,7 +385,7 @@ class OrderTestSuite(TestCase):
         """It should Get an item from an order"""
         # create a known item
         order = self._create_orders(1)[0]
-        item = ItemFactory()
+        item = ItemFactory(order=order)
         resp = self.client.post(
             f"{BASE_URL}/{order.id}/items",
             json=item.serialize(),
@@ -403,7 +414,7 @@ class OrderTestSuite(TestCase):
         """It should Update an item on an order"""
         # create a known item
         order = self._create_orders(1)[0]
-        item = ItemFactory()
+        item = ItemFactory(order=order)
         resp = self.client.post(
             f"{BASE_URL}/{order.id}/items",
             json=item.serialize(),
@@ -439,10 +450,18 @@ class OrderTestSuite(TestCase):
         self.assertEqual(int(data["price"]), 1)
         self.assertEqual(int(data["quantity"]), 1)
 
+        # check the amount of the order changed accordingly
+        resp = self.client.get(
+            f"{BASE_URL}/{order.id}", content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(data["amount"], 1)
+
     def test_delete_item(self):
         """It should Delete an Item"""
         order = self._create_orders(1)[0]
-        item = ItemFactory()
+        item = ItemFactory(order=order)
         resp = self.client.post(
             f"{BASE_URL}/{order.id}/items",
             json=item.serialize(),
@@ -467,6 +486,14 @@ class OrderTestSuite(TestCase):
             content_type="application/json",
         )
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+        # check the amount of the order changed accordingly
+        resp = self.client.get(
+            f"{BASE_URL}/{order.id}", content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(data["amount"], 0)
 
     # ----------------------------------------------------------
     # TEST QUERY
@@ -495,7 +522,9 @@ class OrderTestSuite(TestCase):
         """It should query orders by customer_id"""
         orders = self._create_orders(3)
         orders = Order.query.order_by(Order.date.desc()).all()
-        resp = self.client.get(BASE_URL, query_string=f"customer_id={orders[0].customer_id}")
+        resp = self.client.get(
+            BASE_URL, query_string=f"customer_id={orders[0].customer_id}"
+        )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
         customer_id = int(data[0]["customer_id"])
@@ -618,6 +647,22 @@ class TestSadPaths(TestCase):
         """It should not Update items if order does not exist"""
         resp = self.client.put(
             f"{BASE_URL}/{-100}/items/{-100}",
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_orders_not_available(self):
+        """It should not Update an order if order does not exist"""
+        resp = self.client.put(
+            f"{BASE_URL}/{100}",
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_create_items_not_available(self):
+        """It should not Create items if order does not exist"""
+        resp = self.client.post(
+            f"{BASE_URL}/{100}/items",
             content_type="application/json",
         )
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)

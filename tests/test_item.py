@@ -22,6 +22,7 @@ Test cases for Item Model
 import os
 import logging
 from unittest import TestCase
+from unittest.mock import patch
 from wsgi import app
 from service.models import Order, Item, db
 from service.models.persistent_base import DataValidationError
@@ -69,60 +70,70 @@ class TestItem(TestCase):
 
     def test_create_item(self):
         """It should create an Item associate with an Order and add it to the database"""
+        # create order for test
         orders = Order.all()
         self.assertEqual(orders, [])
         order = OrderFactory()
-        item = ItemFactory(order=order)
-        order.amount = order.amount + item.amount()
         order.create()
         self.assertIsNotNone(order.id)
         orders = Order.all()
         self.assertEqual(len(orders), 1)
+        self.assertEqual(order.amount, 0)
 
+        # create item for test
+        item = ItemFactory(order=order)
+        item_amount = item.price * item.quantity
+        item.create()
+        self.assertEqual(item_amount, item.amount())
+
+        # retrieve the order
         new_order = Order.find(order.id)
         self.assertEqual(new_order.id, item.order_id)
+        self.assertEqual(new_order.amount, item_amount)
 
+        # create another item for test
         new_item = ItemFactory(order=order)
-        order.amount += new_item.amount()
-        order.update()
+        new_item_amount = new_item.price * new_item.quantity
+        new_item.create()
+        self.assertEqual(new_item_amount, new_item.amount())
 
         new_order = Order.find(order.id)
         self.assertEqual(new_order.id, new_item.order_id)
-        self.assertEqual(
-            new_order.amount,
-            item.amount() + new_item.amount(),
-        )
+        self.assertEqual(new_order.amount, item_amount + new_item_amount)
 
     def test_update_order_item(self):
         """It should Update an item in an order"""
         orders = Order.all()
         self.assertEqual(orders, [])
-
         order = OrderFactory()
-        item = ItemFactory(order=order)
         order.create()
         # Assert that it was assigned an id and shows up in the database
         self.assertIsNotNone(order.id)
         orders = Order.all()
         self.assertEqual(len(orders), 1)
+        # create item for test
+        item = ItemFactory(order=order)
+        item_price = item.price
+        item_quantity = item.quantity
+        item.create()
+        # Fetch back
+        found_order = Order.find(order.id)
+        self.assertEqual(found_order.id, item.order_id)
+        found_item = Item.find_by_order_id(order.id)[0]
+        self.assertEqual(item.order_id, found_item.order_id)
+        self.assertEqual(item.product_id, found_item.product_id)
+        self.assertEqual(item.price, found_item.price)
+        self.assertEqual(item.quantity, found_item.quantity)
+        # update item quantity
+        old_order_amount = found_order.amount
+        found_item.quantity = item_quantity + 10
+        new_order_amount = old_order_amount + item_price * 10
+        found_item.update()
 
-        # Fetch it back
-        order = Order.find(order.id)
-        old_item = Item.find_by_product_id(order.id, item.product_id)
-        print("%r", old_item)
-        self.assertEqual(old_item.quantity, item.quantity)
-        # Change the quantity of item and update the amount in order
-        old_item_quantity = old_item.quantity
-        old_item.quantity = old_item_quantity + 10
-        old_order_amount = order.amount
-        new_order_amount = old_order_amount + 10 * old_item.price
-        Order.update_amount(order.id, new_order_amount)
-
-        # Fetch it back again
-        order = Order.find(order.id)
-        item = Item.find_by_product_id(order.id, old_item.product_id)
-        self.assertEqual(item.quantity, old_item_quantity + 10)
-        self.assertEqual(order.amount, new_order_amount)
+        # Fetch back
+        found_order = Order.find(order.id)
+        self.assertEqual(found_item.quantity, item_quantity + 10)
+        self.assertEqual(found_order.amount, new_order_amount)
 
     def test_delete_order_item(self):
         """It should Delete an item of an order"""
@@ -130,23 +141,29 @@ class TestItem(TestCase):
         self.assertEqual(orders, [])
 
         order = OrderFactory()
-        item = ItemFactory(order=order)
         order.create()
         # Assert that it was assigned an id and shows up in the database
         self.assertIsNotNone(order.id)
         orders = Order.all()
         self.assertEqual(len(orders), 1)
-
+        # create item for test
+        item = ItemFactory(order=order)
+        item.create()
+        item_amount = item.amount()
         # Fetch it back
         order = Order.find(order.id)
-        item = Item.find_by_product_id(order.id, item.product_id)
-        delete_item_id = item.product_id
-        # amount that order should subtract
-        amount_of_item = item.price * item.quantity
-        order_new_amount = order.amount - amount_of_item
+        self.assertEqual(order.id, item.order_id)
+        self.assertEqual(order.amount, item_amount)
 
+        found_item = Item.find_by_product_id(order.id, item.product_id)
+        self.assertEqual(found_item.order_id, item.order_id)
+        self.assertEqual(found_item.product_id, item.product_id)
+        self.assertEqual(found_item.amount(), item.amount())
+        delete_item_id = found_item.product_id
+        # amount that order should subtract
+        amount_of_item = found_item.amount()
+        order_new_amount = order.amount - amount_of_item
         item.delete()
-        Order.update_amount(order.id, order_new_amount)
 
         # Fetch it back again
         order = Order.find(order.id)
@@ -228,3 +245,34 @@ class TestItem(TestCase):
         self.assertEqual(found_item.product_id, item.product_id)
         self.assertEqual(found_item.price, item.price)
         self.assertEqual(found_item.quantity, item.quantity)
+
+    ######################################################################
+    #  T E S T   F A I L S
+    ######################################################################
+
+    @patch("service.models.db.session.commit")
+    def test_add_item_failed(self, exception_mock):
+        """It should not create an item on database error"""
+        exception_mock.side_effect = Exception()
+        item = ItemFactory()
+        self.assertRaises(DataValidationError, item.create)
+
+    @patch("service.models.db.session.commit")
+    def test_update_item_failed(self, exception_mock):
+        """It should not update an item on database error"""
+        exception_mock.side_effect = Exception()
+        item = ItemFactory()
+        self.assertRaises(DataValidationError, item.update)
+
+    @patch("service.models.db.session.commit")
+    def test_delete_item_failed(self, exception_mock):
+        """It should not delete an item on database error"""
+        exception_mock.side_effect = Exception()
+        item = ItemFactory()
+        self.assertRaises(DataValidationError, item.delete)
+
+    def test_update_item_without_order_id(self):
+        """It should not update an item without order id"""
+        item = ItemFactory()
+        item.order_id = None
+        self.assertRaises(DataValidationError, item.update)
