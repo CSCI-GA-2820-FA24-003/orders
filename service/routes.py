@@ -28,6 +28,7 @@ from service.models import Order
 from service.models import Item
 from service.common import status  # HTTP Status Codes
 
+
 ######################################################################
 # HEALTH CHECK
 ######################################################################
@@ -35,6 +36,7 @@ from service.common import status  # HTTP Status Codes
 def health_check():
     """Let them know our heart is still beating"""
     return jsonify(status=200, message="Healthy"), status.HTTP_200_OK
+
 
 ######################################################################
 # GET INDEX
