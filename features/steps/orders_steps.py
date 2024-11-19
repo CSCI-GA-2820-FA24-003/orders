@@ -52,11 +52,11 @@ def step_impl(context):
     # load the database with new orders
     for row in context.table:
         payload = {
-            "id": row["id"],
-            "amount": row["amount"],
+            "id": int(row["id"),
+            "amount": float(row["amount"]),
             "address": row["address"],
-            "status": row["status"] in ["0", "1", "2", "3"],
-            "customer_id": row["customer_id"],
+            "status": int(row["status"]) ,
+            "customer_id": int(row["customer_id"]),
         }
         context.resp = requests.post(rest_endpoint, json=payload, timeout=WAIT_TIMEOUT)
         expect(context.resp.status_code).equal_to(HTTP_201_CREATED)
