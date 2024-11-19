@@ -285,6 +285,11 @@ def list_orders():
     else:
         orders = Order.all()
 
+    orders = sorted(
+        orders,
+        key=lambda order: order.date,
+        reverse=True,
+    )
     orders_data = [order.serialize() for order in orders]
     return jsonify(orders_data), status.HTTP_200_OK
 
