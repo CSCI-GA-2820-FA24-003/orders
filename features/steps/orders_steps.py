@@ -64,24 +64,27 @@ def step_impl(context):
 
     @given("the following items")
     def step_impl(context):
-        """Load all items to order"""
-        # Get order
-        rest_endpoint = f"{context.base_url}/api/orders"
+        """Add items to existing orders"""
+
+        # Ensure orders exist
+        rest_endpoint = f"{context.base_url}/orders"
         context.resp = requests.get(rest_endpoint, timeout=WAIT_TIMEOUT)
-        assert context.resp.status_code == HTTP_200_OK
-        order = context.resp.json()[0]
-        items_route = f"{rest_endpoint}/{order['id']}/items"
-        # Add the new items in the table
-        context.items = []
+        assert context.resp.status_code == HTTP_200_OK, f"Error: {context.resp.text}"
+        existing_orders = [order["id"] for order in context.resp.json()]
+
+        # Add items to orders
         for row in context.table:
+            order_id = int(row["order_id"])
+            assert order_id in existing_orders, f"Order {order_id} does not exist."
             payload = {
-                "order_id": int(order["id"]),
                 "product_id": int(row["product_id"]),
-                "quantity": int(row["quantity"]),
                 "price": float(row["price"]),
+                "quantity": int(row["quantity"]),
             }
-            context.resp = requests.post(
-                items_route, json=payload, timeout=WAIT_TIMEOUT
-            )
-            assert context.resp.status_code == HTTP_201_CREATED
-            context.items.append(payload)
+            endpoint = f"{rest_endpoint}/{order_id}/items"
+            print(f"Sending payload to {endpoint}: {payload}")
+            context.resp = requests.post(endpoint, json=payload, timeout=WAIT_TIMEOUT)
+            print(f"Response: {context.resp.status_code}, Body: {context.resp.text}")
+            assert (
+                context.resp.status_code == HTTP_200_OK
+            ), f"Error: {context.resp.text}"
