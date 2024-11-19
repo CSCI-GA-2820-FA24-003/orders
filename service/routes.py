@@ -34,67 +34,8 @@ from service.common import status  # HTTP Status Codes
 ######################################################################
 @app.route("/")
 def index():
-    """Root URL response"""
-    return (
-        jsonify(
-            name="Order REST API Service",
-            version="1.0",
-            description=(
-                "This is a RESTful service for managing order."
-                "You can create, update, delete, read an order, and get all order."
-                "You can also create, update, delete, get an item and get all item in a given order."
-            ),
-            paths={
-                "list_orders": {
-                    "method": "GET",
-                    "url": url_for("list_orders", _external=True),
-                },
-                "get_order": {
-                    "method": "GET",
-                    "url": url_for("get_order", order_id=1, _external=True),
-                },
-                "create_orders": {
-                    "method": "POST",
-                    "url": url_for("create_orders", _external=True),
-                },
-                "update_orders": {
-                    "method": "PUT",
-                    "url": url_for("update_orders", order_id=1, _external=True),
-                },
-                "delete_orders": {
-                    "method": "DELETE",
-                    "url": url_for("delete_orders", order_id=1, _external=True),
-                },
-                "create_items": {
-                    "method": "POST",
-                    "url": url_for("create_items", order_id=1, _external=True),
-                },
-                "list_items": {
-                    "method": "GET",
-                    "url": url_for("list_items", order_id=1, _external=True),
-                },
-                "get_item": {
-                    "method": "GET",
-                    "url": url_for(
-                        "get_item", order_id=1, product_id=1, _external=True
-                    ),
-                },
-                "update_items": {
-                    "method": "PUT",
-                    "url": url_for(
-                        "update_items", order_id=1, product_id=1, _external=True
-                    ),
-                },
-                "delete_items": {
-                    "method": "DELETE",
-                    "url": url_for(
-                        "delete_items", order_id=1, product_id=1, _external=True
-                    ),
-                },
-            },
-        ),
-        status.HTTP_200_OK,
-    )
+    """Base URL for our service"""
+    return app.send_static_file("index.html")
 
 
 ######################################################################
@@ -333,26 +274,22 @@ def list_orders():
         app.logger.info("Find by date: %s", date)
         date_obj = datetime.strptime(date, "%Y-%m-%d").date()
         orders = Order.find_by_date(date_obj)
-    else:
-        orders = Order.all()
-
-    if status_obj:
+    elif status_obj:
         status_obj = int(status_obj)
         orders = Order.find_by_status(status_obj)
-    else:
-        orders = Order.all()
-
-    if address:
+    elif address:
         orders = Order.find_by_address(address)
-    else:
-        orders = Order.all()
-
-    if customer_id:
+    elif customer_id:
         customer_id = int(customer_id)
         orders = Order.find_by_customer_id(customer_id)
     else:
         orders = Order.all()
-    orders = Order.query.order_by(Order.date.desc()).all()
+
+    orders = sorted(
+        orders,
+        key=lambda order: order.date,
+        reverse=True,
+    )
     orders_data = [order.serialize() for order in orders]
     return jsonify(orders_data), status.HTTP_200_OK
 
