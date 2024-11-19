@@ -77,6 +77,7 @@ def step_impl(context):
             order_id = int(row["order_id"])
             assert order_id in existing_orders, f"Order {order_id} does not exist."
             payload = {
+                "order_id": order_id,
                 "product_id": int(row["product_id"]),
                 "price": float(row["price"]),
                 "quantity": int(row["quantity"]),
