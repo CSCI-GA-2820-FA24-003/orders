@@ -59,7 +59,29 @@ def step_impl(context):
             "date": row["date"],
             "customer_id": int(row["customer_id"]),
         }
-        print(f"Sending payload: {payload}")
         context.resp = requests.post(rest_endpoint, json=payload, timeout=WAIT_TIMEOUT)
-        print(f"Response: {context.resp.status_code}, Body: {context.resp.text}")
         expect(context.resp.status_code).equal_to(HTTP_201_CREATED)
+
+    @given("the following items")
+    def step_impl(context):
+        """Load all items to order"""
+        # Get order
+        rest_endpoint = f"{context.base_url}/api/orders"
+        context.resp = requests.get(rest_endpoint, timeout=WAIT_TIMEOUT)
+        assert context.resp.status_code == HTTP_200_OK
+        order = context.resp.json()[0]
+        items_route = f"{rest_endpoint}/{order['id']}/items"
+        # Add the new items in the table
+        context.items = []
+        for row in context.table:
+            payload = {
+                "order_id": int(order["id"]),
+                "product_id": int(row["product_id"]),
+                "quantity": int(row["quantity"]),
+                "price": float(row["price"]),
+            }
+            context.resp = requests.post(
+                items_route, json=payload, timeout=WAIT_TIMEOUT
+            )
+            assert context.resp.status_code == HTTP_201_CREATED
+            context.items.append(payload)
