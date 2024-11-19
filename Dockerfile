@@ -1,3 +1,5 @@
+# Copied from lab
+
 FROM python:3.11-slim
 
 # Create working folder and install dependencies
