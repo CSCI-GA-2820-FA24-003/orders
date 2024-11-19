@@ -58,5 +58,7 @@ def step_impl(context):
             "status": int(row["status"]),
             "customer_id": int(row["customer_id"]),
         }
+        print(f"Sending payload: {payload}")
         context.resp = requests.post(rest_endpoint, json=payload, timeout=WAIT_TIMEOUT)
+        print(f"Response: {context.resp.status_code}, Body: {context.resp.text}")
         expect(context.resp.status_code).equal_to(HTTP_201_CREATED)
