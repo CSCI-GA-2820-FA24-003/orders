@@ -87,5 +87,13 @@ def step_impl(context):
             context.resp = requests.post(endpoint, json=payload, timeout=WAIT_TIMEOUT)
             print(f"Response: {context.resp.status_code}, Body: {context.resp.text}")
             assert (
-                context.resp.status_code == HTTP_200_OK
+                context.resp.status_code == HTTP_201_CREATED
             ), f"Error: {context.resp.text}"
+
+            response_data = context.resp.json()
+            assert response_data["order_id"] == payload["order_id"]
+            assert response_data["product_id"] == payload["product_id"]
+            assert (
+                float(response_data["price"]) == payload["price"]
+            ), f"Expected price {payload['price']}, got {response_data['price']}"
+            assert response_data["quantity"] == payload["quantity"]
