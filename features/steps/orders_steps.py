@@ -56,6 +56,7 @@ def step_impl(context):
             "amount": float(row["amount"]),
             "address": row["address"],
             "status": int(row["status"]),
+            "date": row["date"],
             "customer_id": int(row["customer_id"]),
         }
         print(f"Sending payload: {payload}")
