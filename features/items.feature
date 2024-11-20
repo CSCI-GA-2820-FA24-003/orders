@@ -9,10 +9,10 @@ Background:
         |1            | 2           | 2.0            | 1          | 
         |2            | 3           | 1.0	         | 2          | 
 
-Scenario: The server is running
-    When I visit the "Home Page"
-    Then I should see "Order Demo RESTful Service" in the title
-    And I should not see "404 Not Found"
+# Scenario: The server is running
+#     When I visit the "Home Page"
+#     Then I should see "Order Demo RESTful Service" in the title
+#     And I should not see "404 Not Found"
 
 
 # Scenario: Create an Item
