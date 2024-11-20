@@ -40,6 +40,122 @@ Scenario: Create an Order
     And I should see "1" in the "Customer ID" field
     And I should see "2022-06-16" in the "Date" field
 
+Scenario: Read an Order
+    When I visit the "Home Page"
+    And I press the "Order Clear" button
+    And I set the "address" to "fake address 1"
+    And I press the "Order Search" button
+    Then I should see the message "Success"
+    When I copy the "ID" field
+    And I press the "Order Clear" button
+    Then the "ID" field should be empty
+    And the "Amount" field should be empty
+    And the "Address" field should be empty
+    And the "Customer ID" field should be empty
+    When I paste the "ID" field
+    And I press the "Order Retrieve" button
+    Then I should see the message "Success"
+    And I should see "0" in the "Amount" field
+    And I should see "fake address 1" in the "Address" field
+    And I should see "Cancelled" in the "Status" dropdown
+    And I should see "2019-11-18" in the "Date" field
+    And I should see "1" in the "Customer ID" field
+
+Scenario: Update an Order
+    When I visit the "Home Page"
+    And I press the "Order Clear" button
+    And I set the "Address" to "fake address 1"
+    And I press the "Order Search" button
+    Then I should see the message "Success"
+    And I should see "0" in the "Amount" field
+    And I should see "fake address 1" in the "Address" field
+    And I should see "Cancelled" in the "Status" dropdown
+    And I should see "2019-11-18" in the "Date" field
+    And I should see "1" in the "Customer ID" field
+    When I change "Address" to "fake address changed"
+    And I press the "Order Update" button
+    Then I should see the message "Success"
+    When I copy the "ID" field
+    And I press the "Order Clear" button
+    And I paste the "ID" field
+    And I press the "Order Retrieve" button
+    Then I should see the message "Success"
+    And I should see "fake address changed" in the "Address" field
+    When I press the "Order Clear" button
+    And I press the "Order Search" button
+    Then I should see the message "Success"
+    And I should see "fake address changed" in the order results
+    And I should not see "fake address 1" in the order results
+
+Scenario: Delete an Order
+    When I visit the "Home Page"
+    And I press the "Order Clear" button
+    And I set the "address" to "fake address 1"
+    And I press the "Order Search" button
+    Then I should see the message "Success"
+    And I should see "0" in the "Amount" field
+    And I should see "fake address 1" in the "Address" field
+    And I should see "Cancelled" in the "Status" dropdown
+    And I should see "2019-11-18" in the "Date" field
+    And I should see "1" in the "Customer ID" field
+    When I copy the "ID" field
+    And I press the "Order Delete" button
+    Then I should see the message "Order has been Deleted!"
+    And the "ID" field should be empty
+    And the "Amount" field should be empty
+    And the "Address" field should be empty
+    And the "Customer ID" field should be empty
+    When I paste the "ID" field
+    And I press the "Order Retrieve" button
+    Then I should see the message "404 Not Found"
+
+Scenario: List all Orders
+    When I visit the "Home Page"
+    And I press the "Order Clear" button
+    And I press the "Order Search" button
+    Then I should see the message "Success"
+    And I should see "fake address 1" in the order results
+    And I should see "fake address 2" in the order results
+    And I should see "fake address 3" in the order results
+    And I should see "fake address 4" in the order results
+    And I should not see "fake address 5" in the order results
+
+Scenario: Search by Status
+    When I visit the "Home Page"
+    And I press the "Order Clear" button
+    And I select "Preparing" in the "Status" dropdown
+    And I press the "Order Search" button
+    Then I should see the message "Success"
+    And I should see "fake address 2" in the order results
+    And I should not see "fake address 1" in the order results
+
+Scenario: Search by address
+    When I visit the "Home Page"
+    And I press the "Order Clear" button
+    And I set the "Address" to "fake address 1"
+    And I press the "Order Search" button
+    Then I should see the message "Success"
+    And I should see "Cancelled" in the order results
+    And I should not see "Preparing" in the order results
+
+Scenario: Search by Customer ID
+    When I visit the "Home Page"
+    And I press the "Order Clear" button
+    And I set the "Customer ID" to "1"
+    And I press the "Order Search" button
+    Then I should see the message "Success"
+    And I should see "Cancelled" in the order results
+    And I should not see "Preparing" in the order results
+
+Scenario: Search by Date
+    When I visit the "Home Page"
+    And I press the "Order Clear" button
+    And I set the "Date" to "11-18-2019"
+    And I press the "Order Search" button
+    Then I should see the message "Success"
+    And I should see "fake address 1" in the order results
+    And I should not see "fake address 2" in the order results
+
 Scenario: Cancel an Order
     When I visit the "Home Page"
     And I press the "Order Search" button

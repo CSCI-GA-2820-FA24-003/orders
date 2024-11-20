@@ -160,7 +160,7 @@ $(function () {
 
         ajax.done(function(res){
             clear_order_form_data()
-            flash_message("order has been Deleted!")
+            flash_message("Order has been Deleted!")
         });
 
         ajax.fail(function(res){
