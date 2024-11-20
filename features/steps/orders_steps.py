@@ -60,3 +60,40 @@ def step_impl(context):
         }
         context.resp = requests.post(rest_endpoint, json=payload, timeout=WAIT_TIMEOUT)
         expect(context.resp.status_code).equal_to(HTTP_201_CREATED)
+
+
+@given("the following items")
+def step_impl(context):
+    """Add items to existing orders"""
+
+    # Ensure orders exist
+    rest_endpoint = f"{context.base_url}/orders"
+    context.resp = requests.get(rest_endpoint, timeout=WAIT_TIMEOUT)
+    assert context.resp.status_code == HTTP_200_OK, f"Error: {context.resp.text}"
+    existing_orders = [order["id"] for order in context.resp.json()]
+
+    # Add items to orders
+    for row in context.table:
+        order_id = int(row["order_id"])
+        assert order_id in existing_orders, f"Order {order_id} does not exist."
+        payload = {
+            "order_id": order_id,
+            "product_id": int(row["product_id"]),
+            "price": float(row["price"]),
+            "quantity": int(row["quantity"]),
+        }
+        endpoint = f"{rest_endpoint}/{order_id}/items"
+        print(f"Sending payload to {endpoint}: {payload}")
+        context.resp = requests.post(endpoint, json=payload, timeout=WAIT_TIMEOUT)
+        print(f"Response: {context.resp.status_code}, Body: {context.resp.text}")
+        assert (
+            context.resp.status_code == HTTP_201_CREATED
+        ), f"Error: {context.resp.text}"
+
+        response_data = context.resp.json()
+        assert response_data["order_id"] == payload["order_id"]
+        assert response_data["product_id"] == payload["product_id"]
+        assert (
+            float(response_data["price"]) == payload["price"]
+        ), f"Expected price {payload['price']}, got {response_data['price']}"
+        assert response_data["quantity"] == payload["quantity"]
