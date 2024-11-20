@@ -136,6 +136,22 @@ def step_impl(context, name):
     assert name not in element.text
 
 
+@then('I should see "{name}" in the order results')
+def step_impl(context, name):
+    found = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.text_to_be_present_in_element(
+            (By.ID, "order_search_results"), name
+        )
+    )
+    assert found
+
+
+@then('I should not see "{name}" in the order results')
+def step_impl(context, name):
+    element = context.driver.find_element(By.ID, "order_search_results")
+    assert name not in element.text
+
+
 @then('I should see the message "{message}"')
 def step_impl(context, message):
     found = WebDriverWait(context.driver, context.wait_seconds).until(

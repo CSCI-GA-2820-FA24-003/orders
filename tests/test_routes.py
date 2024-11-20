@@ -115,6 +115,14 @@ class OrderTestSuite(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
     # ----------------------------------------------------------
+    # TEST HEALTH CHECK POINT
+    # ----------------------------------------------------------
+    def test_health_endpoint(self):
+        """It should call the health endpoint"""
+        resp = self.client.get("/health")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+    # ----------------------------------------------------------
     # TEST CREATE
     # ----------------------------------------------------------
     def test_create_order(self):

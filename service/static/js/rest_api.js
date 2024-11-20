@@ -160,7 +160,34 @@ $(function () {
 
         ajax.done(function(res){
             clear_order_form_data()
-            flash_message("order has been Deleted!")
+            flash_message("Order has been Deleted!")
+        });
+
+        ajax.fail(function(res){
+            flash_message("Server error!")
+        });
+    });
+
+    // ****************************************
+    // Cancel an order
+    // ****************************************
+
+    $("#order_cancel-btn").click(function () {
+
+        let order_id = $("#order_id").val();
+
+        $("#flash_message").empty();
+
+        let ajax = $.ajax({
+            type: "PUT",
+            url: `/orders/${order_id}/cancel`,
+            contentType: "application/json",
+            data: '',
+        })
+
+        ajax.done(function(res){
+            update_order_form_data(res)
+            flash_message("Order has been Cancelled!")
         });
 
         ajax.fail(function(res){
@@ -223,9 +250,11 @@ $(function () {
             table += '<th class="col-md-2">Date</th>'
             table += '</tr></thead><tbody>'
             let first_order = "";
+            const status_map = {0: "Cancelled", 1: "Preparing", 2: "Delivering", 3: "Delivered"};
             for(let i = 0; i < res.length; i++) {
                 let order = res[i];
-                table +=  `<tr id="row_${i}"><td>${order.id}</td><td>${order.amount}</td><td>${order.status}</td><td>${order.address}</td><td>${order.customer_id}</td><td>${order.date}</td></tr>`;
+                
+                table +=  `<tr id="row_${i}"><td>${order.id}</td><td>${order.amount}</td><td>${status_map[order.status]}</td><td>${order.address}</td><td>${order.customer_id}</td><td>${order.date}</td></tr>`;
                 if (i == 0) {
                     first_order = order;
                 }
