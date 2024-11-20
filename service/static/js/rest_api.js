@@ -223,9 +223,11 @@ $(function () {
             table += '<th class="col-md-2">Date</th>'
             table += '</tr></thead><tbody>'
             let first_order = "";
+            const status_map = {0: "Cancelled", 1: "Preparing", 2: "Delivering", 3: "Delivered"};
             for(let i = 0; i < res.length; i++) {
                 let order = res[i];
-                table +=  `<tr id="row_${i}"><td>${order.id}</td><td>${order.amount}</td><td>${order.status}</td><td>${order.address}</td><td>${order.customer_id}</td><td>${order.date}</td></tr>`;
+                
+                table +=  `<tr id="row_${i}"><td>${order.id}</td><td>${order.amount}</td><td>${status_map[order.status]}</td><td>${order.address}</td><td>${order.customer_id}</td><td>${order.date}</td></tr>`;
                 if (i == 0) {
                     first_order = order;
                 }
