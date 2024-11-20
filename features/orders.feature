@@ -39,3 +39,13 @@ Scenario: Create an Order
     And I should see "Fake Address" in the "Address" field
     And I should see "1" in the "Customer ID" field
     And I should see "2022-06-16" in the "Date" field
+
+Scenario: Cancel an Order
+    When I visit the "Home Page"
+    And I press the "Order Search" button
+    Then I should see "fake address 2" in the "Address" field
+    And I should see "Preparing" in the "Status" dropdown
+    When I press the "Order Cancel" button
+    Then I should see the message "Order has been Cancelled!"
+    And I should see "fake address 2" in the "Address" field
+    And I should see "Cancelled" in the "Status" dropdown

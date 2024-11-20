@@ -169,6 +169,33 @@ $(function () {
     });
 
     // ****************************************
+    // Cancel an order
+    // ****************************************
+
+    $("#order_cancel-btn").click(function () {
+
+        let order_id = $("#order_id").val();
+
+        $("#flash_message").empty();
+
+        let ajax = $.ajax({
+            type: "PUT",
+            url: `/orders/${order_id}/cancel`,
+            contentType: "application/json",
+            data: '',
+        })
+
+        ajax.done(function(res){
+            update_order_form_data(res)
+            flash_message("Order has been Cancelled!")
+        });
+
+        ajax.fail(function(res){
+            flash_message("Server error!")
+        });
+    });
+
+    // ****************************************
     // Clear the form
     // ****************************************
 
