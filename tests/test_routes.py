@@ -95,12 +95,13 @@ class OrderTestSuite(TestCase):
         item_post_url = f"{BASE_URL}/{order.id}/{item_url}"
 
         for _ in range(count):
-            test_item = ItemFactory(order=order)
+            test_item = ItemFactory()
+            test_item.order_id = order.id
             response = self.client.post(item_post_url, json=test_item.serialize())
             self.assertEqual(
                 response.status_code,
                 status.HTTP_201_CREATED,
-                "Could not create test order",
+                "Could not create test item",
             )
             items.append(test_item)
         return items
@@ -366,10 +367,11 @@ class OrderTestSuite(TestCase):
         """It should Get a list of Items"""
         # add two addresses to order
         order = self._create_orders(1)[0]
+        # order = Order.find(order.id)
         order.create()
         item_list = ItemFactory.create_batch(2)
-        item_list[0].order = order
-        item_list[1].order = order
+        item_list[0].order_id = order.id
+        item_list[1].order_id = order.id
         # Create item 1
         resp = self.client.post(
             f"{BASE_URL}/{order.id}/items", json=item_list[0].serialize()
@@ -569,10 +571,10 @@ class OrderTestSuite(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
-        self.assertEqual(len(data), price_count)
         # check the data just to be sure
         for item in data:
             self.assertEqual(item["price"], float(test_price))
+        self.assertEqual(len(data), price_count)
 
     def test_query_items_by_quantity(self):
         """It should Query Items by Quantity"""
@@ -584,7 +586,6 @@ class OrderTestSuite(TestCase):
         self.assertIsNotNone(order.id)
         orders = Order.all()
         self.assertEqual(len(orders), 1)
-
         # create some items
         items = self._create_items(order, 5)
         self.assertEqual(len(items), 5)
@@ -634,15 +635,14 @@ class TestSadPaths(TestCase):
         )
         self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
-    # TODO this test cannot pass
-    # def test_create_order_bad_available(self):
-    #     """It should not Create an Order with bad available data"""
-    #     test_order = OrderFactory()
-    #     logging.debug(test_order)
-    #     # change available to a string
-    #     test_order.status = "a string"
-    #     response = self.client.post(BASE_URL, json=test_order.serialize())
-    #     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    def test_create_order_bad_available(self):
+        """It should not Create an Order with bad available data"""
+        test_order = OrderFactory()
+        logging.debug(test_order)
+        # change available to a string
+        test_order.status = "a string"
+        response = self.client.post(BASE_URL, json=test_order.serialize())
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_get_items_not_available(self):
         """It should not Get items if order does not exist"""
