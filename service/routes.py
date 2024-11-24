@@ -15,10 +15,23 @@
 ######################################################################
 
 """
-YourResourceModel Service
+Order Service with Swagger
 
-This service implements a REST API that allows you to Create, Read, Update
-and Delete YourResourceModel
+Paths:
+------ Order ------
+GET / - Displays a UI for Selenium testing
+GET /orders - Returns a list all of the Orders
+GET /orders/{order_id} - Returns the Order with a given id number
+POST /orders - creates a new Order record in the database
+PUT /orders/{order_id} - updates a Order record in the database
+DELETE /orders/{id} - deletes an Order record in the database
+PUT /orders/{order_id}/cancel - cancel an Order
+------ Item ------
+GET /orders/{order_id}/items - Returns a list all of the items of an order
+GET /orders/{order_id}/items/{product_id} - Returns the item with the given order id and product id
+POST /orders/{order_id}/items - creates a new Item record in the database
+PUT /orders/{order_id}/items/{product_id} - updates an Item record in the database
+DELETE /orders/{order_id}/items/{product_id} - deletes an Order record in the database
 """
 
 from datetime import datetime
