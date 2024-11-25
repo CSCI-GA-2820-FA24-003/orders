@@ -20,7 +20,6 @@ and SQL database
 """
 import sys
 from flask import Flask
-from flask_restx import Api
 from service import config
 from service.common import log_handlers
 
@@ -45,21 +44,6 @@ def create_app():
 
     # Turn off strict slashes because it violates best practices
     app.url_map.strict_slashes = False
-
-    ######################################################################
-    # Configure Swagger before initializing it
-    ######################################################################
-    global api
-    api = Api(
-        app,
-        version="1.0.0",
-        title="Order Demo REST API Service",
-        description="This is an Order server.",
-        default="orders",
-        default_label="Order operations",
-        doc="/apidocs",  # default also could use doc='/apidocs/'
-        prefix="/api",
-    )
 
     with app.app_context():
         # Dependencies require we import the routes AFTER the Flask app is created

@@ -37,11 +37,24 @@ DELETE /orders/{order_id}/items/{product_id} - deletes an Order record in the da
 from datetime import datetime
 from flask import jsonify, request
 from flask import current_app as app  # Import Flask application
-from flask_restx import Resource, fields, reqparse
+from flask_restx import Api, Resource, fields, reqparse
 from service.models import Order
 from service.models import Item
 from service.common import status  # HTTP Status Codes
-from . import api
+
+######################################################################
+# Configure Swagger before initializing it
+######################################################################
+api = Api(
+    app,
+    version="1.0.0",
+    title="Order Demo REST API Service",
+    description="This is an Order server.",
+    default="orders",
+    default_label="Order operations",
+    doc="/apidocs",  # default also could use doc='/apidocs/'
+    prefix="/api",
+)
 
 
 ######################################################################
