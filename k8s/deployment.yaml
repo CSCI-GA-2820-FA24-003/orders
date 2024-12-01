@@ -5,7 +5,7 @@ metadata:
   labels:
     app: orders
 spec:
-  replicas: 1
+  replicas: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -23,7 +23,7 @@ spec:
       containers:
       - name: orders
         image: cluster-registry:5000/orders:1.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
           protocol: TCP
