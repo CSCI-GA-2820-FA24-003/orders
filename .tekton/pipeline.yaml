@@ -60,8 +60,7 @@ spec:
         - name: verbose
           value: 'true'
         - name: gitInitImage
-          value: >-
-            registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8@sha256:1a50511583fc02a27012d17d942e247813404104ddd282d7e26f99765174392c
+          value: registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8@sha256:1a50511583fc02a27012d17d942e247813404104ddd282d7e26f99765174392c
         - name: userHome
           value: /home/git
       taskRef:
