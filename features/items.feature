@@ -4,7 +4,7 @@ Feature: The Item service back-end
     So that I can keep track of all items of my orders
 
 Background:
-    Given the following order
+    Given the following orders
         | amount | address           | status   | date         | customer_id |
         | 0.0    | item address      | 1        | 2024-12-01   | 100         |
     Given the following Items
