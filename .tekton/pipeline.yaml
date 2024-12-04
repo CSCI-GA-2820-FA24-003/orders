@@ -24,6 +24,10 @@ spec:
       description: The name of the image to build
       type: string
       default: 'image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/$(params.APP_NAME):latest'
+		- name: BASE_URL
+      description: The base URL of the application
+      type: string
+      default: "http://orders:8080" # 可选：设置一个默认值
   tasks:
     - name: git-clone
       params:
