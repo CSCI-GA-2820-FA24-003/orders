@@ -3,7 +3,7 @@ $(function () {
     // ****************************************
     //  U T I L I T Y   F U N C T I O N S
     // ****************************************
-
+    
     // Updates the form with data from the response
     function update_order_form_data(res) {
         $("#order_id").val(res.id);
@@ -53,7 +53,7 @@ $(function () {
         
         let ajax = $.ajax({
             type: "POST",
-            url: "/orders",
+            url: "/api/orders",
             contentType: "application/json",
             data: JSON.stringify(data),
         });
@@ -95,7 +95,7 @@ $(function () {
 
         let ajax = $.ajax({
                 type: "PUT",
-                url: `/orders/${order_id}`,
+                url: `/api/orders/${order_id}`,
                 contentType: "application/json",
                 data: JSON.stringify(data)
             })
@@ -123,7 +123,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "GET",
-            url: `/orders/${order_id}`,
+            url: `/api/orders/${order_id}`,
             contentType: "application/json",
             data: ''
         })
@@ -153,7 +153,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "DELETE",
-            url: `/orders/${order_id}`,
+            url: `/api/orders/${order_id}`,
             contentType: "application/json",
             data: '',
         })
@@ -180,7 +180,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "PUT",
-            url: `/orders/${order_id}/cancel`,
+            url: `/api/orders/${order_id}/cancel`,
             contentType: "application/json",
             data: '',
         })
@@ -232,7 +232,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "GET",
-            url: `/orders?${queryString}`,
+            url: `/api/orders?${queryString}`,
             contentType: "application/json",
             data: ''
         })
@@ -318,7 +318,7 @@ $(function () {
         
         let ajax = $.ajax({
             type: "POST",
-            url: `/orders/${order_id}/items`,
+            url: `/api/orders/${order_id}/items`,
             contentType: "application/json",
             data: JSON.stringify(data),
         });
@@ -356,7 +356,7 @@ $(function () {
 
         let ajax = $.ajax({
                 type: "PUT",
-                url: `/orders/${order_id}/items/${product_id}`,
+                url: `/api/orders/${order_id}/items/${product_id}`,
                 contentType: "application/json",
                 data: JSON.stringify(data)
             })
@@ -385,7 +385,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "GET",
-            url: `/orders/${order_id}/items/${product_id}`,
+            url: `/api/orders/${order_id}/items/${product_id}`,
             contentType: "application/json",
             data: ''
         })
@@ -416,7 +416,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "DELETE",
-            url: `/orders/${order_id}/items/${product_id}`,
+            url: `/api/orders/${order_id}/items/${product_id}`,
             contentType: "application/json",
             data: '',
         })
@@ -462,7 +462,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "GET",
-            url: `/orders/${order_id}/items?${queryString}`,
+            url: `/api/orders/${order_id}/items?${queryString}`,
             contentType: "application/json",
             data: ''
         })

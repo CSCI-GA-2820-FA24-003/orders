@@ -39,7 +39,7 @@ def step_impl(context):
     """Add items to existing orders"""
 
     # Ensure orders exist
-    rest_endpoint = f"{context.base_url}/orders"
+    rest_endpoint = f"{context.base_url}/api/orders"
     context.resp = requests.get(rest_endpoint, timeout=WAIT_TIMEOUT)
     assert context.resp.status_code == HTTP_200_OK, f"Error: {context.resp.text}"
     existing_orders = [order["id"] for order in context.resp.json()]

@@ -23,6 +23,9 @@ from flask import Flask
 from service import config
 from service.common import log_handlers
 
+# Will be initialize when app is created
+api = None  # pylint: disable=invalid-name
+
 
 ############################################################
 # Initialize the Flask instance
@@ -36,7 +39,11 @@ def create_app():
     # Initialize Plugins
     # pylint: disable=import-outside-toplevel
     from service.models import db
+
     db.init_app(app)
+
+    # Turn off strict slashes because it violates best practices
+    app.url_map.strict_slashes = False
 
     with app.app_context():
         # Dependencies require we import the routes AFTER the Flask app is created
@@ -55,7 +62,7 @@ def create_app():
         log_handlers.init_logging(app, "gunicorn.error")
 
         app.logger.info(70 * "*")
-        app.logger.info("  S E R V I C E   R U N N I N G  ".center(70, "*"))
+        app.logger.info("O R D E R   S E R V I C E   R U N N I N G  ".center(70, "*"))
         app.logger.info(70 * "*")
 
         app.logger.info("Service initialized!")

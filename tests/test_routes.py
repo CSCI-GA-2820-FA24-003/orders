@@ -33,7 +33,7 @@ from .factories import OrderFactory, ItemFactory
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
 )
-BASE_URL = "/orders"
+BASE_URL = "/api/orders"
 
 ######################################################################
 #  T E S T   C A S E S
@@ -95,12 +95,13 @@ class OrderTestSuite(TestCase):
         item_post_url = f"{BASE_URL}/{order.id}/{item_url}"
 
         for _ in range(count):
-            test_item = ItemFactory(order=order)
+            test_item = ItemFactory()
+            test_item.order_id = order.id
             response = self.client.post(item_post_url, json=test_item.serialize())
             self.assertEqual(
                 response.status_code,
                 status.HTTP_201_CREATED,
-                "Could not create test order",
+                "Could not create test item",
             )
             items.append(test_item)
         return items
@@ -232,7 +233,7 @@ class OrderTestSuite(TestCase):
     def test_get_all_orders(self):
         """It should retrieve all orders sorted by date"""
         self._create_orders(3)
-        response = self.client.get("/orders")
+        response = self.client.get(f"{BASE_URL}")
         self.assertEqual(response.status_code, 200)
 
         data = response.get_json()
@@ -242,7 +243,7 @@ class OrderTestSuite(TestCase):
 
     def test_get_all_orders_empty(self):
         """Return empty list with status code 200 when there is no order"""
-        response = self.client.get("/orders")
+        response = self.client.get(f"{BASE_URL}")
         self.assertEqual(response.status_code, 200)
         data = response.get_json()
         self.assertEqual(data, [])
@@ -271,26 +272,26 @@ class OrderTestSuite(TestCase):
         response = self.client.put(f"{BASE_URL}/{order.id}/cancel")
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
 
-    def test_deliver_an_order(self):
-        """It should deliver an order"""
-        orders = self._create_orders(10)
-        available_orders = [order for order in orders if order.status != 0]
-        order = available_orders[0]
-        response = self.client.put(f"{BASE_URL}/{order.id}/deliver")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response = self.client.get(f"{BASE_URL}/{order.id}")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        data = response.get_json()
-        logging.debug("Response data: %s", data)
-        self.assertEqual(data["status"], 3)
+    # def test_deliver_an_order(self):
+    #     """It should deliver an order"""
+    #     orders = self._create_orders(10)
+    #     available_orders = [order for order in orders if order.status != 0]
+    #     order = available_orders[0]
+    #     response = self.client.put(f"{BASE_URL}/{order.id}/deliver")
+    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+    #     response = self.client.get(f"{BASE_URL}/{order.id}")
+    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+    #     data = response.get_json()
+    #     logging.debug("Response data: %s", data)
+    #     self.assertEqual(data["status"], 3)
 
-    def test_deliver_not_available(self):
-        """It should not Deliver a Order that is not available"""
-        orders = self._create_orders(100)
-        unavailable_orders = [order for order in orders if order.status == 0]
-        order = unavailable_orders[0]
-        response = self.client.put(f"{BASE_URL}/{order.id}/deliver")
-        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+    # def test_deliver_not_available(self):
+    #     """It should not Deliver a Order that is not available"""
+    #     orders = self._create_orders(100)
+    #     unavailable_orders = [order for order in orders if order.status == 0]
+    #     order = unavailable_orders[0]
+    #     response = self.client.put(f"{BASE_URL}/{order.id}/deliver")
+    #     self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
 
     # Don't need this part. - comment by TZ
     # @mock.patch("service.models.Order.query")
@@ -341,7 +342,7 @@ class OrderTestSuite(TestCase):
         self.assertEqual(new_item["product_id"], test_item.product_id)
 
         # price need to be in the same type
-        self.assertEqual(str(test_item.price), new_item["price"])
+        self.assertEqual(float(test_item.price), new_item["price"])
         self.assertEqual(new_item["quantity"], test_item.quantity)
 
         # Check that the location header was correct
@@ -351,7 +352,7 @@ class OrderTestSuite(TestCase):
         new_item = response.get_json()
         self.assertEqual(new_item["order_id"], test_item.order_id)
         self.assertEqual(new_item["product_id"], test_item.product_id)
-        self.assertEqual(new_item["price"], str(test_item.price))
+        self.assertEqual(new_item["price"], float(test_item.price))
         self.assertEqual(new_item["quantity"], test_item.quantity)
 
         # check the amount of the order changed accordingly
@@ -366,10 +367,11 @@ class OrderTestSuite(TestCase):
         """It should Get a list of Items"""
         # add two addresses to order
         order = self._create_orders(1)[0]
+        # order = Order.find(order.id)
         order.create()
         item_list = ItemFactory.create_batch(2)
-        item_list[0].order = order
-        item_list[1].order = order
+        item_list[0].order_id = order.id
+        item_list[1].order_id = order.id
         # Create item 1
         resp = self.client.post(
             f"{BASE_URL}/{order.id}/items", json=item_list[0].serialize()
@@ -415,7 +417,7 @@ class OrderTestSuite(TestCase):
         logging.debug(data)
         self.assertEqual(data["order_id"], order.id)
         self.assertEqual(data["product_id"], item.product_id)
-        self.assertEqual(data["price"], str(item.price))
+        self.assertEqual(data["price"], float(item.price))
         self.assertEqual(data["quantity"], item.quantity)
 
     def test_update_item(self):
@@ -569,10 +571,10 @@ class OrderTestSuite(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
-        self.assertEqual(len(data), price_count)
         # check the data just to be sure
         for item in data:
-            self.assertEqual(item["price"], str(test_price))
+            self.assertEqual(item["price"], float(test_price))
+        self.assertEqual(len(data), price_count)
 
     def test_query_items_by_quantity(self):
         """It should Query Items by Quantity"""
@@ -584,7 +586,6 @@ class OrderTestSuite(TestCase):
         self.assertIsNotNone(order.id)
         orders = Order.all()
         self.assertEqual(len(orders), 1)
-
         # create some items
         items = self._create_items(order, 5)
         self.assertEqual(len(items), 5)

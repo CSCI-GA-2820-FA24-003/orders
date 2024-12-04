@@ -107,7 +107,7 @@ Scenario: Delete an Order
     And the "Customer ID" field should be empty
     When I paste the "ID" field
     And I press the "Order Retrieve" button
-    Then I should see the message "404 Not Found"
+    Then I should see the message "could not be found"
 
 Scenario: List all Orders
     When I visit the "Home Page"
