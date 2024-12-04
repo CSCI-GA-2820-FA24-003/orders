@@ -1,0 +1,67 @@
+﻿kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: orders
+  namespace: zjt7988-dev
+  uid: e6652156-bbdc-445c-84af-6595c540cd50
+  resourceVersion: '5311659068'
+  creationTimestamp: '2024-12-04T02:34:14Z'
+  labels:
+    app: orders
+  annotations:
+    openshift.io/host.generated: 'true'
+  managedFields:
+    - manager: Mozilla
+      operation: Update
+      apiVersion: route.openshift.io/v1
+      time: '2024-12-04T02:34:14Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:labels':
+            .: {}
+            'f:app': {}
+        'f:spec':
+          'f:port':
+            .: {}
+            'f:targetPort': {}
+          'f:tls':
+            .: {}
+            'f:insecureEdgeTerminationPolicy': {}
+            'f:termination': {}
+          'f:to':
+            'f:kind': {}
+            'f:name': {}
+            'f:weight': {}
+          'f:wildcardPolicy': {}
+    - manager: openshift-router
+      operation: Update
+      apiVersion: route.openshift.io/v1
+      time: '2024-12-04T02:34:14Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:status':
+          'f:ingress': {}
+      subresource: status
+spec:
+  host: orders-zjt7988-dev.apps.sandbox-m2.ll9k.p1.openshiftapps.com
+  to:
+    kind: Service
+    name: orders
+    weight: 100
+  port:
+    targetPort: 8080-tcp
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+status:
+  ingress:
+    - host: orders-zjt7988-dev.apps.sandbox-m2.ll9k.p1.openshiftapps.com
+      routerName: default
+      conditions:
+        - type: Admitted
+          status: 'True'
+          lastTransitionTime: '2024-12-04T02:34:14Z'
+      wildcardPolicy: None
+      routerCanonicalHostname: router-default.apps.sandbox-m2.ll9k.p1.openshiftapps.com
