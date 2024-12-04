@@ -10,6 +10,9 @@ spec:
     description: The git revision
   - name: git-repo-name
     description: The name of the deployment to be created / patched
+  - name: BASE_URL
+    description: The base URL of the application
+    default: "http://orders:8080" 
 
   resourcetemplates:
   - apiVersion: tekton.dev/v1beta1
@@ -27,6 +30,8 @@ spec:
         value: $(tt.params.git-repo-url)
       - name: IMAGE_NAME
         value: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/$(tt.params.git-repo-name):$(tt.params.git-revision)
+      - name: BASE_URL
+          value: $(tt.params.BASE_URL)
       workspaces:
       - name: pipeline-workspace
         persistentVolumeClaim:
