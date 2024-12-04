@@ -446,7 +446,7 @@ $(function () {
     // ****************************************
 
     $("#item_search-btn").click(function () {
-        let order_id = $("#order_id").val();
+        let order_id = $("#item_order_id").val();
         let price = $("#item_price").val();
         let quantity = $("#item_quantity").val();
 

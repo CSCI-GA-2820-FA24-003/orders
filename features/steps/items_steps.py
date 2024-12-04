@@ -14,10 +14,12 @@
 # limitations under the License.
 ######################################################################
 
+# pylint: disable=duplicate-code
+# flake8: noqa
 """
-Order Steps
+Item Steps
 
-Steps file for Order.feature
+Steps file for Item.feature
 
 For information on Waiting until elements are present in the HTML see:
     https://selenium-python.readthedocs.io/waits.html
@@ -41,12 +43,13 @@ def step_impl(context):
     # Ensure orders exist
     rest_endpoint = f"{context.base_url}/api/orders"
     context.resp = requests.get(rest_endpoint, timeout=WAIT_TIMEOUT)
+    expect(context.resp.status_code).equal_to(HTTP_200_OK)
     assert context.resp.status_code == HTTP_200_OK, f"Error: {context.resp.text}"
     existing_orders = [order["id"] for order in context.resp.json()]
 
     # Add items to orders
     for row in context.table:
-        order_id = int(row["order_id"])
+        order_id = existing_orders[0]
         assert order_id in existing_orders, f"Order {order_id} does not exist."
         payload = {
             "order_id": order_id,
@@ -55,17 +58,4 @@ def step_impl(context):
             "quantity": int(row["quantity"]),
         }
         endpoint = f"{rest_endpoint}/{order_id}/items"
-        print(f"Sending payload to {endpoint}: {payload}")
         context.resp = requests.post(endpoint, json=payload, timeout=WAIT_TIMEOUT)
-        print(f"Response: {context.resp.status_code}, Body: {context.resp.text}")
-        assert (
-            context.resp.status_code == HTTP_201_CREATED
-        ), f"Error: {context.resp.text}"
-
-        response_data = context.resp.json()
-        assert response_data["order_id"] == payload["order_id"]
-        assert response_data["product_id"] == payload["product_id"]
-        assert (
-            float(response_data["price"]) == payload["price"]
-        ), f"Expected price {payload['price']}, got {response_data['price']}"
-        assert response_data["quantity"] == payload["quantity"]

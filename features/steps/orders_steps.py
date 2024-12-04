@@ -44,6 +44,18 @@ def step_impl(context):
     expect(context.resp.status_code).equal_to(HTTP_200_OK)
     # and delete them one by one
     for order in context.resp.json():
+        context.resp = requests.get(
+            f"{rest_endpoint}/{order['id']}/items", timeout=WAIT_TIMEOUT
+        )
+        expect(context.resp.status_code).equal_to(HTTP_200_OK)
+
+        for item in context.resp.json():
+            context.resp = requests.delete(
+                f"{rest_endpoint}/{order['id']}/items/{item['product_id']}",
+                timeout=WAIT_TIMEOUT,
+            )
+            expect(context.resp.status_code).equal_to(HTTP_204_NO_CONTENT)
+
         context.resp = requests.delete(
             f"{rest_endpoint}/{order['id']}", timeout=WAIT_TIMEOUT
         )
