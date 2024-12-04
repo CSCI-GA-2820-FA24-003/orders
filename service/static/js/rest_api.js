@@ -409,7 +409,7 @@ $(function () {
 
     $("#item_delete-btn").click(function () {
 
-        let order_id = $("#order_id").val();
+        let order_id = $("#item_order_id").val();
         let product_id = $("#item_product_id").val();
 
         $("#flash_message").empty();

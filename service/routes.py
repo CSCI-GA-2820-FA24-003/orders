@@ -117,9 +117,24 @@ order_args.add_argument(
     required=False,
     help="List Orders by customer id",
 )
+
+
+def valid_date(value):
+    """
+    Parses a string value into a datetime.date object.
+    Raises a ValueError if the format is incorrect.
+    """
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except ValueError as exc:
+        raise ValueError(
+            f"Invalid date: '{value}'. Expected format: YYYY-MM-DD"
+        ) from exc
+
+
 order_args.add_argument(
     "date",
-    type=str,
+    type=valid_date,
     location="args",
     required=False,
     help="List Orders by date",
@@ -226,6 +241,7 @@ class OrderCollection(Resource):
     # LIST ALL ORDERS
     # ------------------------------------------------------------------
     @api.doc("list_orders")
+    @api.response(400, "The query data was not valid")
     @api.expect(order_args, validate=True)
     @api.marshal_list_with(order_model)
     def get(self):
@@ -239,8 +255,9 @@ class OrderCollection(Resource):
 
         if args["date"]:
             app.logger.info("Filtering by date: %s", args["date"])
-            date_obj = datetime.strptime(args["date"], "%Y-%m-%d").date()
-            orders = Order.find_by_date(date_obj)
+            # date_obj = datetime.strptime(args["date"], "%Y-%m-%d").date()
+            # orders = Order.find_by_date(date_obj)
+            orders = Order.find_by_date(args["date"])
         elif args["status"]:
             app.logger.info("Filtering by status: %s", args["status"])
             # status_obj = int(args["status"])
