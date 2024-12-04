@@ -272,39 +272,6 @@ class OrderTestSuite(TestCase):
         response = self.client.put(f"{BASE_URL}/{order.id}/cancel")
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
 
-    # def test_deliver_an_order(self):
-    #     """It should deliver an order"""
-    #     orders = self._create_orders(10)
-    #     available_orders = [order for order in orders if order.status != 0]
-    #     order = available_orders[0]
-    #     response = self.client.put(f"{BASE_URL}/{order.id}/deliver")
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     response = self.client.get(f"{BASE_URL}/{order.id}")
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     data = response.get_json()
-    #     logging.debug("Response data: %s", data)
-    #     self.assertEqual(data["status"], 3)
-
-    # def test_deliver_not_available(self):
-    #     """It should not Deliver a Order that is not available"""
-    #     orders = self._create_orders(100)
-    #     unavailable_orders = [order for order in orders if order.status == 0]
-    #     order = unavailable_orders[0]
-    #     response = self.client.put(f"{BASE_URL}/{order.id}/deliver")
-    #     self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
-
-    # Don't need this part. - comment by TZ
-    # @mock.patch("service.models.Order.query")
-    # def test_get_all_orders_failure(self, mock_query):
-    #     """It should return 500 when an exception occurs while retrieving orders"""
-    #     mock_query.order_by.side_effect = Exception("Database Error")
-
-    #     response = self.client.get("/orders")
-    #     self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    #     data = response.get_json()
-    #     self.assertIn("Failed to retrieve orders", data["error"])
-
     ######################################################################
     #  I T E M   T E S T   C A S E S
     ######################################################################
@@ -596,10 +563,10 @@ class OrderTestSuite(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
-        self.assertEqual(len(data), quantity_count)
         # check the data just to be sure
         for item in data:
             self.assertEqual(item["quantity"], test_quantity)
+        self.assertEqual(len(data), quantity_count)
 
 
 ######################################################################
