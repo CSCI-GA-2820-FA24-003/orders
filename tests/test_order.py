@@ -19,6 +19,7 @@ Test cases for Order Model
 """
 
 # pylint: disable=duplicate-code
+# a change to test pipeline
 import os
 import logging
 from unittest import TestCase
