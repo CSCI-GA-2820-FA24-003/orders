@@ -19,6 +19,7 @@ TestYourResourceModel API Service Test Suite
 """
 
 # pylint: disable=duplicate-code
+# test commit for pipeline
 import os
 import logging
 from datetime import datetime
