@@ -612,6 +612,13 @@ class TestSadPaths(TestCase):
         response = self.client.post(BASE_URL, json=test_order.serialize())
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_query_order_with_invalid_date(self):
+        """It should not query an Order with invalid date string"""
+        test_order = OrderFactory()
+        logging.debug(test_order)
+        response = self.client.get(BASE_URL, query_string="date=xxx")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_get_items_not_available(self):
         """It should not Get items if order does not exist"""
         resp = self.client.get(
